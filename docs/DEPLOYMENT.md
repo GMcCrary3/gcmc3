@@ -54,6 +54,37 @@ The form is detected automatically by Netlify at build time (`data-netlify="true
 - Optional: put a public email in *settings → public contact email* to show a direct
   address as well.
 
+## The field (collective work)
+
+The field runs on Netlify Functions and Netlify Blobs: no other service or account is
+needed. Both deploy automatically with the site.
+
+1. **Set the moderation key.** In Netlify: *Site configuration → Environment variables →
+   Add a variable*: `FIELD_ADMIN_TOKEN` = a long random passphrase (at least 16 characters;
+   a password manager can generate one). Redeploy. Keep it private.
+2. **Moderate** at `https://gilesmccrary.com/field/moderate/` with that key. *Needs review*
+   lists reported pieces (and, under pre-moderation, everything waiting). *Show* or *hide*
+   each one.
+3. **Settings** (*settings → the field* in the editor):
+   - *open for new pieces*: pause new contributions at any time; the field stays visible.
+   - *moderation*: "post" (pieces appear at once; three reports hide a piece until reviewed)
+     or "pre" (every piece waits for approval).
+
+How it holds up if it spreads:
+- Leaving a piece writes only keys unique to that piece, so simultaneous visitors never
+  collide. A scheduled function files new pieces into numbered pages once a minute
+  (about 36,000 an hour; any backlog simply waits its turn and is still shown at once).
+- Reads are cached briefly at Netlify's edge, and each request reads at most one page of
+  100 pieces.
+- Netlify limits each visitor to 8 submissions a minute.
+- Words are screened automatically for offensive language, links, emails and phone numbers.
+- Watch usage under *Netlify → Usage*. The free plan includes generous function and blob
+  allowances; a sustained viral spike may need a paid plan. You can close the field to new
+  pieces at any moment without losing anything.
+
+Locally: `npm run build && npm run field:dev` runs the whole site with the field at
+http://localhost:8888 (moderation key `local-dev-moderation-token`; data in `.field-data/`).
+
 ## Analytics
 
 Analytics are **off** until the artist approves them. The configured option is

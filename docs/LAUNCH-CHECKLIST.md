@@ -13,6 +13,9 @@ Status as of the latest build. ✅ verified · 🟡 built, needs verifying after
 | Mobile layouts are usable | ✅ | Checked at 390px and 820px; no horizontal scrolling |
 | Keyboard navigation works | ✅ | Tab order, enlargement (Escape returns focus), poem reveal, guide, abstract space |
 | Reduced-motion settings respected | ✅ | Fades, smooth scrolling and transitions disabled |
+| The field: leave, view, share, report, remove, moderate | ✅ local / 🟡 live | Tested end to end against a local Netlify Blobs server, including 250 simultaneous submissions (all kept, numbered without gaps or duplicates), word screening, reporting, owner removal and moderation. Must be re-checked once deployed |
+| Field moderation key set | ⬜ | `FIELD_ADMIN_TOKEN` in Netlify (docs/DEPLOYMENT.md) |
+| Field wording approved | ⬜ | Title, subtitle, consent text, button labels (settings → the field) |
 | Contact submissions delivered | 🟡 | Netlify Forms is wired up; delivery can only be tested once the site is deployed with email notifications set |
 | Content editable without programming | 🟡 | Editor configuration complete; sign-in needs Netlify + GitHub OAuth (docs/DEPLOYMENT.md) |
 | HTTPS on the intended domain | ⬜ | Not deployed. Requires the Netlify site and DNS (docs/DEPLOYMENT.md) |

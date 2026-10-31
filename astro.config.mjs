@@ -18,7 +18,7 @@ export default defineConfig({
   trailingSlash: 'always',
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/contact/thanks/'),
+      filter: (page) => !page.includes('/contact/thanks/') && !page.includes('/field/moderate/'),
     }),
   ],
   build: {

@@ -15,6 +15,8 @@ the site needs no server, which keeps it faster, simpler, and more secure), edit
 | `/` | full-viewport opening: artwork no. 01, *abstractly concrete.*, *the art of unthinking.*, the opening statement, "Enter the exhibition" / "Explore the artwork" |
 | `/exhibition/` | **the primary experience**: five movements of paintings, interludes and optional poem reveals, with a hideable movement guide, previous/next controls and enlargement |
 | `/abstract/` | *abstract your own concrete.* — visitors name something concrete and take it apart themselves (loosen, scatter, unweight, erase, drag); they can save the result as an image. Nothing they type leaves their browser |
+| `/field/` | **the field** — the collective work: every piece a visitor abstracted and chose to leave for others, seen as one continuous surface or one by one, with a live count. Each piece has its own link to share |
+| `/field/moderate/` | the artist's private moderation view (needs the moderation key) |
 | `/artwork/` | selected works (01, 07, 08, 05, 06, 03), then archive & process (09, 04, 02, 10) |
 | `/artwork/work-NN/` | one page per work: the whole image, enlargeable, only confirmed details, a link to where it hangs in the exhibition |
 | `/writing/` and `/writing/<slug>/` | books, poems (exact line breaks), prose, publications, optional readings |
@@ -57,6 +59,7 @@ npm run cms          # optional, in a second terminal: edit locally at http://lo
 npm run build        # type-check and build to dist/
 npm run preview      # serve the built site
 npm run status       # list missing images, empty fields, unapproved copy
+npm run field:dev    # after a build: the whole site *with the field working*, at http://localhost:8888
 ```
 
 ## More
@@ -78,5 +81,6 @@ src/data/site.json       settings: identity lines, opening statement, hero, gall
 src/pages/               the routes
 src/components/          image, caption, SEO, and editorial-note components
 public/admin/            the content editor
+netlify/functions/       the field's server side: leave, read, report, remove, moderate, file
 netlify.toml             build, security headers, www → apex redirect
 ```

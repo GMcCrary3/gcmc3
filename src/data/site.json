@@ -36,7 +36,17 @@
     "prompt": "Name something concrete.",
     "hint": "A word, an object, a certainty — anything you hold as fixed.",
     "begin": "begin",
-    "empty": "nothing remains."
+    "empty": "nothing remains.",
+    "privacy": "what you type stays in your browser unless you choose to leave it for others."
+  },
+  "field": {
+    "open": true,
+    "moderation": "post",
+    "title": "the field.",
+    "subtitle": "every piece here was abstracted by a visitor and left for the next.",
+    "leave": "leave it for others",
+    "consent": "Your piece joins the field anonymously: only the letters and their arrangement are kept, nothing about you. Leaving it means it can be shown as part of this collective work by giles c mccrary iii, on this site and wherever the work is exhibited.",
+    "credit": "abstractly concrete · giles c mccrary iii · gilesmccrary.com/field"
   },
   "contactForm": {
     "enabled": true,

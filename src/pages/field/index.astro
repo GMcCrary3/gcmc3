@@ -1,0 +1,89 @@
+---
+/**
+ * the field — the collective work. Every piece was abstracted by a visitor
+ * and left for the next. Pieces load from /api/field (Netlify Functions).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
+const field = site.field;
+---
+<BaseLayout title={field.title} description={`${field.title} ${field.subtitle} ${site.concept}. ${site.byline}.`}>
+  <header class="page-head wrap field-head">
+    <span class="label">{site.concept}</span>
+    <h1>{field.title}</h1>
+    <p class="sub">{field.subtitle}</p>
+    <p class="count" aria-live="polite"><span data-count>—</span> <span data-count-label>pieces so far.</span></p>
+    <p class="actions">
+      <a class="btn primary" href="/abstract/">add yours <span aria-hidden="true">→</span></a>
+      <button type="button" class="text-btn" data-view-toggle aria-pressed="true">seen as one</button>
+    </p>
+  </header>
+
+  <section class="focus wrap" data-focus hidden aria-labelledby="focus-h" tabindex="-1">
+    <h2 id="focus-h" class="label" data-focus-title></h2>
+    <div class="focus-art" data-focus-art></div>
+    <p class="focus-meta">
+      <button type="button" class="text-btn" data-share>share</button>
+      <button type="button" class="text-btn" data-report>report</button>
+      <button type="button" class="text-btn" data-remove hidden>remove my piece</button>
+      <button type="button" class="text-btn" data-close>close</button>
+    </p>
+    <p class="label" data-focus-status aria-live="polite"></p>
+  </section>
+
+  <section class="wrap" aria-label="All pieces in the field">
+    <p class="status" data-status>gathering the field…</p>
+    <ol class="field as-one" data-field></ol>
+    <p class="more"><button type="button" class="btn" data-more hidden>earlier pieces</button></p>
+  </section>
+
+  <script>
+    import '../../lib/field-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .field-head .sub { font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); font-style: italic; max-width: 36ch; margin: 1rem 0 0; color: var(--ink-soft); }
+  .count { margin: 2rem 0 0; font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem); }
+  .count [data-count] { color: var(--oxide); font-variant-numeric: lining-nums tabular-nums; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: 1.5rem; }
+  .status { color: var(--slate); font-family: var(--sans); font-size: 0.9375rem; }
+  .status:empty { display: none; }
+
+  .field { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 9rem), 1fr)); }
+  .field :global(li) { margin: 0; }
+  .field :global(button.tile) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    background: var(--ivory-deep);
+    cursor: zoom-in;
+    color: var(--ink);
+  }
+  .field :global(.tile .piece-svg) { width: 100%; height: 100%; display: block; }
+  .field :global(.tile:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; position: relative; z-index: 1; }
+  .field :global(.cap) { display: none; }
+
+  /* seen as one: edge to edge, a single continuous surface */
+  .field.as-one { gap: 0; }
+  /* one by one: spaced, numbered */
+  .field:not(.as-one) { gap: var(--gutter); grid-template-columns: repeat(auto-fill, minmax(min(46%, 13rem), 1fr)); }
+  .field:not(.as-one) :global(.cap) { display: block; padding-top: 0.5rem; }
+  @media (hover: hover) {
+    .field :global(.tile:hover) { background: color-mix(in srgb, var(--ivory-deep) 80%, var(--rule)); }
+  }
+
+  :global(.piece-svg text) { font-family: var(--serif); font-weight: 450; fill: var(--ink); }
+  :global(.piece-svg text.sans) { font-family: var(--sans); font-weight: 300; }
+  :global(.piece-svg text.slate) { fill: var(--slate); }
+
+  .focus { padding-block: 0 var(--space-4); scroll-margin-top: 2rem; }
+  .focus[hidden] { display: none; }
+  .focus:focus { outline: none; }
+  .focus-art { background: var(--ivory-deep); max-width: 52rem; }
+  .focus-art :global(.piece-svg) { width: 100%; height: auto; display: block; max-height: 75svh; }
+  .focus-meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; margin-top: 0.75rem; }
+  .more { margin-top: var(--space-3); text-align: center; }
+</style>

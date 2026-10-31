@@ -255,6 +255,23 @@ collections:
               - { label: hint, name: hint, widget: string }
               - { label: "button", name: begin, widget: string }
               - { label: "when every letter is erased", name: empty, widget: string }
+              - { label: "privacy line under the prompt", name: privacy, widget: string }
+          - label: "the field (collective work)"
+            name: field
+            widget: object
+            fields:
+              - { label: "open for new pieces", name: open, widget: boolean, hint: "Turn off to pause new pieces; the field stays visible." }
+              - label: moderation
+                name: moderation
+                widget: select
+                options:
+                  - { label: "pieces appear at once; reported pieces are held for review", value: post }
+                  - { label: "every piece waits for approval before appearing", value: pre }
+              - { label: title, name: title, widget: string }
+              - { label: subtitle, name: subtitle, widget: string }
+              - { label: "button", name: leave, widget: string }
+              - { label: "consent text shown before leaving a piece", name: consent, widget: text }
+              - { label: "credit on saved and shared images", name: credit, widget: string }
           - label: contact form
             name: contactForm
             widget: object

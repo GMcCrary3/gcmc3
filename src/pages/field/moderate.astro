@@ -1,0 +1,50 @@
+---
+/**
+ * The artist's moderation view for the field. Not linked anywhere, not indexed,
+ * and useless without the moderation key (FIELD_ADMIN_TOKEN, set in Netlify).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="field moderation" noindex>
+  <header class="page-head wrap">
+    <span class="label">the field</span>
+    <h1>moderation</h1>
+  </header>
+  <div class="wrap mod">
+    <form data-key-form class="key">
+      <label for="key">moderation key</label>
+      <input id="key" type="password" autocomplete="current-password" required />
+      <button class="btn primary" type="submit">open</button>
+      <p class="label">kept only for this browser tab.</p>
+    </form>
+
+    <div data-panel hidden>
+      <p class="views">
+        <button type="button" class="btn" data-view="review">needs review</button>
+        <button type="button" class="btn" data-view="recent">most recent</button>
+      </p>
+      <p class="label" data-info aria-live="polite"></p>
+      <ol class="items" data-items></ol>
+    </div>
+  </div>
+  <script>
+    import '../../lib/field-moderate';
+  </script>
+</BaseLayout>
+
+<style>
+  .key { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+  .key input { font: inherit; padding: 0.5rem; border: 1px solid var(--ink); background: transparent; min-width: 16rem; }
+  .key .label { width: 100%; }
+  [data-panel][hidden] { display: none; }
+  .views { display: flex; gap: 0.75rem; }
+  .items { list-style: none; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); }
+  .items :global(.art) { background: var(--ivory-deep); aspect-ratio: 1; }
+  .items :global(.art svg) { width: 100%; height: 100%; }
+  .items :global(.meta) { font-family: var(--sans); font-size: 0.8125rem; margin: 0.5rem 0; }
+  .items :global(.meta .st) { color: var(--oxide); }
+  .items :global(.btns) { display: flex; gap: 1rem; }
+  :global(.piece-svg text) { font-family: var(--serif); font-weight: 450; fill: var(--ink); }
+  :global(.piece-svg text.sans) { font-family: var(--sans); font-weight: 300; }
+  :global(.piece-svg text.slate) { fill: var(--slate); }
+</style>

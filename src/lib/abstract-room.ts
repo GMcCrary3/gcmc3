@@ -16,6 +16,8 @@ type Glyph = {
   el: HTMLButtonElement;
 };
 
+import { api, errorMessage, pieceUrl, rememberMine, share } from './field-render';
+
 const form = document.querySelector<HTMLFormElement>('[data-name-form]');
 const wrap = document.querySelector<HTMLElement>('[data-field-wrap]');
 const field = document.querySelector<HTMLElement>('[data-field]');
@@ -70,6 +72,7 @@ if (form && wrap && field && remains && live) {
       });
     remains.hidden = true;
     renderAll();
+    resetLeave();
   };
 
   const remove = (g: Glyph) => {
@@ -176,10 +179,29 @@ if (form && wrap && field && remains && live) {
     keep() {
       void keep();
     },
+    leave() {
+      if (!leaveBtn || !leavePanel) return;
+      const open = leavePanel.hidden;
+      leavePanel.hidden = !open;
+      leaveBtn.setAttribute('aria-expanded', String(open));
+      if (open) leavePanel.querySelector<HTMLButtonElement>('[data-act="confirm-leave"]')?.focus();
+    },
+    'confirm-leave'() {
+      void confirmLeave();
+    },
+    'cancel-leave'() {
+      if (!leaveBtn || !leavePanel) return;
+      leavePanel.hidden = true;
+      leaveBtn.setAttribute('aria-expanded', 'false');
+      leaveBtn.focus();
+    },
+    share() {
+      void shareIt();
+    },
   };
 
-  // Save the composition as an image, drawn fresh onto a canvas.
-  async function keep() {
+  // Draw the composition as an image, fresh onto a canvas.
+  async function renderPng(): Promise<Blob | null> {
     await document.fonts.ready;
     const rect = field!.getBoundingClientRect();
     const scale = 1600 / rect.width;
@@ -214,19 +236,95 @@ if (form && wrap && field && remains && live) {
     ctx.fillStyle = css.getPropertyValue('--slate').trim() || '#53616d';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText('abstractly concrete · gilesmccrary.com', canvas.width * 0.025, canvas.height * 0.97);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
+    ctx.fillText(credit, canvas.width * 0.025, canvas.height * 0.97);
+    return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'));
+  }
+
+  const fileName = () => {
+    const safe = word.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'concrete';
+    return `abstracted-${safe}.png`;
+  };
+
+  async function keep() {
+    const blob = await renderPng();
+    if (!blob) return;
+    {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      const safe = word.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'concrete';
-      a.download = `abstracted-${safe}.png`;
+      a.download = fileName();
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       say('image saved.');
-    }, 'image/png');
+    }
+  }
+
+  /* ---------- leaving it for others ---------- */
+  const credit = document.querySelector<HTMLElement>('[data-credit]')?.dataset.credit ?? 'abstractly concrete · gilesmccrary.com';
+  const leaveBtn = wrap.querySelector<HTMLButtonElement>('[data-act="leave"]');
+  const leavePanel = wrap.querySelector<HTMLElement>('[data-leave-panel]');
+  const leftPanel = wrap.querySelector<HTMLElement>('[data-left-panel]');
+  const leaveError = wrap.querySelector<HTMLElement>('[data-leave-error]');
+  const leftLink = wrap.querySelector<HTMLAnchorElement>('[data-left-link]');
+  const shareStatus = wrap.querySelector<HTMLElement>('[data-share-status]');
+  let leftId = '';
+
+  const resetLeave = () => {
+    if (!leaveBtn || !leavePanel || !leftPanel || !leaveError) return;
+    leaveBtn.hidden = false;
+    leaveBtn.setAttribute('aria-expanded', 'false');
+    leavePanel.hidden = true;
+    leftPanel.hidden = true;
+    leaveError.hidden = true;
+    leftId = '';
+  };
+
+  async function confirmLeave() {
+    if (!leaveBtn || !leavePanel || !leftPanel || !leaveError || !leftLink) return;
+    if (!glyphs.length) {
+      leaveError.textContent = 'nothing remains to leave. that, too, is a piece, but the field needs at least one letter.';
+      leaveError.hidden = false;
+      return;
+    }
+    const confirmBtn = leavePanel.querySelector<HTMLButtonElement>('[data-act="confirm-leave"]')!;
+    confirmBtn.disabled = true;
+    const body = {
+      text: word,
+      aspect: field!.clientWidth >= field!.clientHeight ? 'landscape' : 'portrait',
+      base,
+      glyphs: glyphs.map((g) => ({ c: g.ch, x: g.x, y: g.y, r: g.r, s: g.s, f: g.sans ? 1 : 0, t: g.slate ? 1 : 0 })),
+    };
+    const res = await api<{ id?: string; token?: string; status?: string; error?: string }>('/api/field/leave', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    confirmBtn.disabled = false;
+    if (!res.ok || !res.data.id) {
+      leaveError.textContent = errorMessage(res.status, res.data.error);
+      leaveError.hidden = false;
+      say(leaveError.textContent);
+      return;
+    }
+    leftId = res.data.id;
+    if (res.data.token) rememberMine(leftId, res.data.token);
+    leftLink.href = `/field/?piece=${encodeURIComponent(leftId)}`;
+    if (res.data.status === 'pending') {
+      leftPanel.querySelector('.left-msg')!.textContent = 'left. it will appear in the field once it has been seen.';
+    }
+    leavePanel.hidden = true;
+    leaveBtn.hidden = true;
+    leftPanel.hidden = false;
+    leftPanel.focus();
+    say('left for others.');
+  }
+
+  async function shareIt() {
+    if (!leftId || !shareStatus) return;
+    const blob = await renderPng();
+    const file = blob ? new File([blob], fileName(), { type: 'image/png' }) : undefined;
+    const result = await share(pieceUrl(leftId), 'I abstracted my own concrete.', file);
+    shareStatus.textContent = result === 'copied' ? 'link copied.' : result === 'shared' ? 'shared.' : '';
   }
 
   wrap.addEventListener('click', (e) => {

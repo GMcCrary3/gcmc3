@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /field/moderate/
+Disallow: /api/
 
 Sitemap: https://gilesmccrary.com/sitemap-index.xml

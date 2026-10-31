@@ -36,6 +36,20 @@ scatter, unweight, erase, drag, turn), then optionally save the result as an ima
 change is a visitor action. It works fully by keyboard, announces changes to screen
 readers, and respects reduced motion. Nothing typed there is sent or stored.
 
+## the field.
+The collective work. Anyone can abstract their own concrete and choose to leave it for
+others; every piece joins one growing surface. *Seen as one*, the pieces meet edge to edge
+on a single ground. *One by one*, they are spaced and numbered. Each piece can be opened,
+shared by link (or, on phones, shared with its image), reported, or removed by the person
+who left it.
+
+- Free and anonymous: no accounts, and nothing about the visitor is stored.
+- Every saved or shared image carries the credit line
+  *abstractly concrete · giles c mccrary iii · gilesmccrary.com/field*.
+- Words are screened automatically for offensive language, links, and contact details;
+  reports and the artist's moderation handle the rest.
+- Leaving a piece is always a deliberate, explained choice; nothing is collected silently.
+
 ## Images
 - Masters are kept unaltered in `src/assets/artwork/`. Web copies (AVIF/WebP/JPEG) are made
   at build time, with colour converted to sRGB. No filters, no generative enhancement.

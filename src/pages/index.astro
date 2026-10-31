@@ -85,6 +85,12 @@ const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
       <span class="t">{site.abstractRoom.title}</span>
       <span class="label">{site.abstractRoom.prompt}</span>
     </a>
+    {site.field.open && (
+      <a class="invite" href="/field/" data-reveal>
+        <span class="t">{site.field.title}</span>
+        <span class="label">{site.field.subtitle}</span>
+      </a>
+    )}
   </section>
 
   {books.length > 0 && (
@@ -197,7 +203,7 @@ const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
   .mv-list a:hover .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 
   .abstract-invite { padding-top: var(--space-5); }
-  .invite { display: grid; gap: 0.75rem; text-decoration: none; padding-block: 1rem 0; }
+  .invite { display: grid; gap: 0.75rem; text-decoration: none; padding-block: 1rem; border-bottom: 1px solid var(--rule); }
   .invite .t { font-size: clamp(2rem, 1.3rem + 3vw, 4.25rem); line-height: 1.05; font-style: italic; }
   .invite:hover .t { color: var(--oxide); }
 

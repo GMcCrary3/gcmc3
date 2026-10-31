@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "private": true,
-  "description": "GilesMcCrary.com — abstractly concrete. Artist and writer website for giles c mccrary iii.",
+  "description": "GilesMcCrary.com \u2014 abstractly concrete. Artist and writer website for giles c mccrary iii.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
@@ -12,7 +12,8 @@
     "cms": "npx --yes decap-server@3",
     "check": "astro check",
     "status": "node scripts/content-status.mjs",
-    "og": "node scripts/make-og-default.mjs"
+    "og": "node scripts/make-og-default.mjs",
+    "field:dev": "node scripts/field-dev-server.mjs"
   },
   "engines": {
     "node": ">=20.3.0"
@@ -21,11 +22,14 @@
     "@astrojs/sitemap": "3.7.4",
     "@fontsource-variable/cormorant-garamond": "^5.3.0",
     "@fontsource-variable/inter": "^5.3.0",
+    "@netlify/blobs": "11.1.7",
     "astro": "5.18.2",
+    "obscenity": "0.4.6",
     "sharp": "0.34.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "@netlify/functions": "6.0.3",
     "typescript": "^5.6.3"
   }
 }
