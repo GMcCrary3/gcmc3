@@ -1,7 +1,10 @@
 // Verifies the field on a DEPLOYED Netlify site, before launch.
 //
-//   node scripts/field-verify.mjs https://<deploy-url> <moderation-key>
+//   node scripts/field-verify.mjs https://<deploy-url> <moderation-key> [prelaunch-password]
 //
+// If the prelaunch gate is on (PRELAUNCH_PASSWORD set in Netlify), pass the
+// password as the third argument; the script also checks that the site
+// refuses visitors without it.
 // Run it against a deploy preview or branch deploy first: those use separate
 // storage ("field-preview"), so the real field is untouched. Everything this
 // script creates is hidden or removed again before it finishes.
@@ -9,16 +12,18 @@
 // preview the script triggers filing itself through the moderation endpoint.
 import assert from 'node:assert/strict';
 
-const [base, key] = process.argv.slice(2);
+const [base, key, gatePassword] = process.argv.slice(2);
 if (!base || !key) {
   console.error('usage: node scripts/field-verify.mjs https://<deploy-url> <moderation-key>');
   process.exit(2);
 }
 const url = (p) => new URL(p, base).href;
-const ADMIN = { authorization: `Bearer ${key}` };
+const ADMIN = { 'x-field-admin-key': key };
+const GATE = gatePassword ? { authorization: `Basic ${Buffer.from(`preview:${gatePassword}`).toString('base64')}` } : {};
+const get = (path) => fetch(url(path), { headers: GATE });
 const req = async (path, { method = 'GET', body, headers = {} } = {}) => {
   const res = await fetch(url(path), {
-    method, headers: { 'content-type': 'application/json', ...headers }, body: body ? JSON.stringify(body) : undefined,
+    method, headers: { 'content-type': 'application/json', ...GATE, ...headers }, body: body ? JSON.stringify(body) : undefined,
   });
   let data = {};
   try { data = await res.json(); } catch { /* not json */ }
@@ -30,8 +35,12 @@ const check = async (name, fn) => {
   try { const note = await fn(); results.push(['✓', name, note ?? '']); } catch (e) { results.push(['✗', name, e.message]); }
 };
 
-const html = await (await fetch(url('/'))).text();
-const terms = (await (await fetch(url('/abstract/'))).text()).match(/data-agree[^>]*value="([^"]+)"/)?.[1]
+const html = await (await get('/')).text();
+if (!gatePassword && (await fetch(url('/'))).status === 401) {
+  console.error('The site asks for a password (prelaunch gate). Pass it as the third argument.');
+  process.exit(2);
+}
+const terms = (await (await get('/abstract/')).text()).match(/data-agree[^>]*value="([^"]+)"/)?.[1]
   ?? html.match(/terms version (\d{4}-\d{2}-\d{2})/)?.[1];
 const composition = (w, i = 0) => ({
   text: w, aspect: 'landscape', base: 12, agree: terms,
@@ -39,21 +48,31 @@ const composition = (w, i = 0) => ({
 });
 const mine = [];
 
+if (gatePassword) {
+  await check('prelaunch gate refuses visitors without the password (pages and API)', async () => {
+    for (const p of ['/', '/exhibition/', '/field/', '/api/field', '/robots.txt']) {
+      const r = await fetch(url(p));
+      assert.equal(r.status, 401, `${p} returned ${r.status}`);
+    }
+    const wrong = await fetch(url('/'), { headers: { authorization: `Basic ${Buffer.from('x:wrong').toString('base64')}` } });
+    assert.equal(wrong.status, 401, 'wrong password accepted');
+  });
+}
 await check('HTTPS and security headers', async () => {
-  const r = await fetch(url('/'));
+  const r = await get('/');
   assert.ok(url('/').startsWith('https://'), 'not https');
   assert.ok(r.headers.get('strict-transport-security'), 'no HSTS');
   return r.headers.get('strict-transport-security');
 });
 await check('site is hidden from search engines while prelaunch is on', async () => {
-  const robots = await (await fetch(url('/robots.txt'))).text();
+  const robots = await (await get('/robots.txt')).text();
   assert.match(robots, /Disallow: \/\s*$/m);
 });
 await check('field API reachable (persistent storage readable)', async () => {
   const r = await req('/api/field'); assert.equal(r.status, 200); return `total ${r.data.total}`;
 });
 await check('moderation refuses a wrong key (authenticated on the server)', async () => {
-  const r = await req('/api/field/moderate', { headers: { authorization: 'Bearer wrong' } }); assert.equal(r.status, 401);
+  const r = await req('/api/field/moderate', { headers: { 'x-field-admin-key': 'wrong' } }); assert.equal(r.status, 401);
 });
 await check('moderation accepts the key', async () => {
   const r = await req('/api/field/moderate', { headers: ADMIN }); assert.equal(r.status, 200);
@@ -118,6 +137,11 @@ await check('removal by the owner erases the piece', async () => {
     if (r.status === 429) { await sleep(61_000); await req('/api/field/remove', { method: 'POST', body: { id: m.id, token: m.token } }); }
   }
   assert.equal((await req(`/api/field/piece?id=${one.id}`, { headers: { 'x-field-key': one.token } })).status, 404);
+});
+await check('scheduled filing is healthy (run on production; previews have no schedule)', async () => {
+  const h = (await req('/api/field/moderate?view=health', { headers: ADMIN })).data;
+  assert.equal(h.stalled, false, JSON.stringify(h));
+  return `waiting ${h.waiting}, oldest ${h.oldestWaitingSeconds}s`;
 });
 await check('test pieces cleaned up (hidden)', async () => {
   const r = await req('/api/field/moderate', { method: 'POST', headers: ADMIN, body: { ids: selftest, action: 'hide' } });

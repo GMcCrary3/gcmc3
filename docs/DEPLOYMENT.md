@@ -54,6 +54,18 @@ The form is detected automatically by Netlify at build time (`data-netlify="true
 - Optional: put a public email in *settings → public contact email* to show a direct
   address as well.
 
+## Prelaunch privacy gate
+
+Search-engine exclusion (`prelaunch` in settings) only asks crawlers to stay away; it does
+not make the site private. To restrict access, set the Netlify environment variable
+**`PRELAUNCH_PASSWORD`** (Site configuration → Environment variables) and redeploy. Every
+request (pages, images, the field's API, the editor) then requires that password through
+the browser's standard sign-in box (any username). This runs as a Netlify Edge Function
+(`netlify/edge-functions/prelaunch-gate.ts`) and works on the free plan. To launch, delete
+the variable and redeploy. Test: `npm run test:gate`.
+
+(Netlify's built-in site password protection, on paid plans, is an alternative.)
+
 ## The field (participatory artwork)
 
 The field runs on Netlify Functions and Netlify Blobs: no other service or account is
@@ -68,8 +80,8 @@ behaviour, and **docs/LAUNCH-CHECKLIST.md** for the order of deployment and veri
   deploy only. On previews, use "file waiting pieces now" on the moderation page.
 - **Settings** (*settings → the field*): open/closed, pre- or post-moderation, wording,
   terms version, credit lines.
-- **Capacity:** leaving a piece never contends with other visitors; filing handles about
-  36,000 pieces an hour; reads are cached briefly at the edge. Watch *Netlify → Usage*; a
+- **Capacity:** leaving a piece does not contend with other visitors; filing is sized for
+  roughly 36,000 pieces an hour (to be confirmed under real conditions); reads are cached briefly at the edge. Watch *Netlify → Usage*; a
   sustained surge may need a paid plan. Close the field to new pieces at any time without
   losing anything.
 

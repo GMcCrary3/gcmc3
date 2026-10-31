@@ -14,7 +14,9 @@
     "status": "node scripts/content-status.mjs",
     "og": "node scripts/make-og-default.mjs",
     "field:dev": "node scripts/field-dev-server.mjs",
-    "test:field": "node scripts/field-test.mjs"
+    "test:field": "node scripts/field-test.mjs",
+    "test:gate": "node scripts/gate-test.mjs",
+    "test": "npm run test:field && npm run test:gate"
   },
   "engines": {
     "node": ">=20.3.0"

@@ -1,0 +1,20 @@
+// Tests the prelaunch privacy gate (netlify/edge-functions/prelaunch-gate.ts). Run: npm run test:gate
+import assert from 'node:assert/strict';
+let pw;
+globalThis.Netlify = { env: { get: (k) => (k === 'PRELAUNCH_PASSWORD' ? pw : undefined) } };
+const gate = (await import(new URL('../netlify/edge-functions/prelaunch-gate.ts', import.meta.url).href)).default;
+const ctx = { next: async () => new Response('page', { status: 200, headers: { 'cache-control': 'public, max-age=60' } }) };
+const basic = (p) => ({ authorization: 'Basic ' + Buffer.from('anyone:' + p).toString('base64') });
+pw = undefined;
+assert.equal((await gate(new Request('https://x/'), ctx)).status, 200, 'off: open');
+pw = 'correct horse battery staple';
+let r = await gate(new Request('https://x/'), ctx);
+assert.equal(r.status, 401); assert.match(r.headers.get('www-authenticate'), /Basic/);
+assert.equal((await gate(new Request('https://x/api/field'), ctx)).status, 401, 'api gated');
+assert.equal((await gate(new Request('https://x/', { headers: basic('wrong') }), ctx)).status, 401, 'wrong pw');
+assert.equal((await gate(new Request('https://x/', { headers: { authorization: 'Basic %%%' } }), ctx)).status, 401, 'garbage');
+r = await gate(new Request('https://x/', { headers: basic(pw) }), ctx);
+assert.equal(r.status, 200); assert.equal(r.headers.get('cache-control'), 'private, no-store'); assert.match(r.headers.get('x-robots-tag'), /noindex/);
+r = await gate(new Request('https://x/api/field/moderate', { headers: { ...basic(pw), 'x-field-admin-key': 'k' } }), ctx);
+assert.equal(r.status, 200, 'gate + moderation header coexist');
+console.log('gate: 8 checks passed');

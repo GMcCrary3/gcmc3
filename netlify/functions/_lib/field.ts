@@ -12,13 +12,15 @@
  *   dup/<day>/<hash>    {}                            same-day duplicate guard
  *
  * Leaving a piece writes only keys unique to that piece, so simultaneous
- * visitors never conflict. A scheduled function files new pieces into
- * numbered pages once a minute. Filing is journalled and idempotent: an
- * interrupted or repeated run finishes the same batch with the same numbers,
- * and a piece's "waiting" copy is deleted only after it is safely in a page.
- * Every change to a piece increments its revision (rev); wherever two copies
- * exist briefly during filing, the higher revision always wins, so a
- * moderation decision is never undone by filing.
+ * visitors do not contend for the same record. A scheduled function files new
+ * pieces into numbered pages once a minute. Filing is journalled and designed
+ * to be idempotent: an interrupted or repeated run completes the same batch
+ * with the same numbers, and a piece's "waiting" copy is deleted only after it
+ * has been written to a page. Every change to a piece increments its revision
+ * (rev); where two copies exist briefly during filing, the higher revision is
+ * kept, so a moderation decision made meanwhile is carried over.
+ * These properties are covered by scripts/field-test.mjs locally and must be
+ * re-verified on Netlify (scripts/field-verify.mjs). Failures are logged.
  *
  * Privacy: nothing about the visitor is stored — no name, email, IP address,
  * or device information. Only the letters, their arrangement, the date, the
@@ -322,7 +324,10 @@ export async function fileWaiting(s: Store, max = 600): Promise<number> {
   try {
     let filed = 0;
     const journal = (await s.get('meta/batch', { type: 'json' })) as Batch | null;
-    if (journal) filed += await applyBatch(s, journal);
+    if (journal) {
+      console.warn(`[field] completing an interrupted filing batch of ${journal.items.length} (n ≤ ${journal.endN})`);
+      filed += await applyBatch(s, journal);
+    }
 
     const keys = (await waitingKeys(s)).slice(0, max);
     if (!keys.length) return filed;
@@ -374,6 +379,29 @@ async function applyBatch(s: Store, batch: Batch): Promise<number> {
   for (let i = 0; i < loaded.length; i += 25) await Promise.all(loaded.slice(i, i + 25).map(finish));
   await s.delete('meta/batch');
   return loaded.filter((x) => x.piece).length;
+}
+
+/* ------------------------------------------------------------------ health */
+
+/** A snapshot for the moderation page and logs: is filing keeping up? */
+export async function health(s: Store) {
+  const [filed, waiting, journal, lock] = await Promise.all([
+    filedCount(s),
+    waitingKeys(s),
+    s.get('meta/batch', { type: 'json' }) as Promise<Batch | null>,
+    s.get('meta/lock', { type: 'json' }) as Promise<{ until: number } | null>,
+  ]);
+  const oldest = waiting[0] ? Number(waiting[0].slice(4, 19)) : null;
+  const oldestWaitingSeconds = oldest ? Math.round((Date.now() - oldest) / 1000) : 0;
+  return {
+    filed,
+    waiting: waiting.length,
+    oldestWaitingSeconds,
+    interruptedBatch: journal ? journal.items.length : 0,
+    filingInProgress: Boolean(lock && lock.until > Date.now()),
+    // Filing runs every minute; anything waiting much longer suggests it has stalled.
+    stalled: oldestWaitingSeconds > 300 || Boolean(journal && !(lock && lock.until > Date.now())),
+  };
 }
 
 /* -------------------------------------------------------------------- misc */

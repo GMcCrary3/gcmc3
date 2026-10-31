@@ -3,7 +3,7 @@
  * the FIELD_ADMIN_TOKEN environment variable (at least 32 characters). The key
  * never appears in the site's code; the artist types it into the moderation page.
  *
- * GET  /api/field/moderate?view=review|recent&page=K
+ * GET  /api/field/moderate?view=review|recent|health&page=K
  * POST /api/field/moderate  { id | ids: [...], action: "show" | "hide" }
  * POST /api/field/moderate  { action: "file" }            file waiting pieces now
  *                                                          (also a manual recovery tool)
@@ -12,7 +12,7 @@
  */
 import type { Config } from '@netlify/functions';
 import {
-  PAGE_SIZE, fileWaiting, filedCount, json, mutate, randomId, readBody, readPage, readWaiting, safeEqual, sha256, store,
+  PAGE_SIZE, fileWaiting, filedCount, health, json, mutate, randomId, readBody, readPage, readWaiting, safeEqual, sha256, store,
   uniqueById, waitingKeys, type Piece,
 } from './_lib/field.ts';
 
@@ -20,7 +20,8 @@ const needsReview = (p: Piece) => p.status === 'pending' || (p.status === 'visib
 
 export default async (req: Request) => {
   const secret = process.env.FIELD_ADMIN_TOKEN ?? '';
-  const given = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
+  // Its own header, so it never collides with the prelaunch gate's Basic sign-in.
+  const given = req.headers.get('x-field-admin-key') ?? '';
   if (secret.length < 32 || !safeEqual(given, secret)) {
     await new Promise((r) => setTimeout(r, 400)); // slow down guessing
     return json({ error: 'not allowed' }, 401);
@@ -63,6 +64,7 @@ export default async (req: Request) => {
   }
 
   const url = new URL(req.url);
+  if (url.searchParams.get('view') === 'health') return json(await health(s));
   const [filed, waiting] = await Promise.all([filedCount(s), waitingKeys(s)]);
   const count = filed + waiting.length;
   const pages = Math.ceil(filed / PAGE_SIZE);

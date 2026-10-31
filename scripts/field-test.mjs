@@ -23,7 +23,7 @@ const read = (await import(join(root, 'netlify/functions/field-read.mts'))).defa
 const moderate = (await import(join(root, 'netlify/functions/field-moderate.mts'))).default;
 const site = (await import(join(root, 'src/data/site.json'), { with: { type: 'json' } })).default;
 const TERMS = site.field.termsVersion;
-const ADMIN = { authorization: `Bearer ${process.env.FIELD_ADMIN_TOKEN}` };
+const ADMIN = { 'x-field-admin-key': process.env.FIELD_ADMIN_TOKEN };
 
 const call = async (handler, path, { method = 'GET', body, headers = {} } = {}) => {
   const res = await handler(new Request(`http://x${path}`, {
@@ -91,7 +91,7 @@ await test('screening: threats and impersonation of the artist are held with a r
 });
 await test('moderation: refused without the key, or with a wrong key', async () => {
   assert.equal((await call(moderate, '/api/field/moderate')).status, 401);
-  assert.equal((await call(moderate, '/api/field/moderate', { headers: { authorization: 'Bearer wrong' } })).status, 401);
+  assert.equal((await call(moderate, '/api/field/moderate', { headers: { 'x-field-admin-key': 'wrong' } })).status, 401);
 });
 await test('moderation: approving makes a piece public', async () => {
   const r = await call(moderate, '/api/field/moderate', { method: 'POST', headers: ADMIN, body: { id: homeId, action: 'show' } });
@@ -159,7 +159,7 @@ await test('filing survives being interrupted at any step (no loss, no duplicate
   }
 });
 
-await test('a moderation decision made during filing is never undone', async () => {
+await test('a moderation decision made during filing is kept', async () => {
   const s = lib.store();
   for (let round = 0; round < 20; round++) {
     const r = await call(leave, '/api/field/leave', { method: 'POST', body: composition(`race${round}`) });
@@ -184,6 +184,19 @@ await test('a second filing run cannot start while one holds the lease', async (
   assert.equal(await lib.fileWaiting(s), 0);
   await s.delete('meta/lock');
   assert.equal(await lib.fileWaiting(s), 1);
+});
+
+await test('health reports waiting pieces, and flags a stalled interrupted batch', async () => {
+  const s = lib.store();
+  await call(leave, '/api/field/leave', { method: 'POST', body: composition('health') });
+  let h = await lib.health(s);
+  assert.equal(h.waiting, 1); assert.equal(h.stalled, false);
+  await s.setJSON('meta/batch', { items: [], endN: await lib.filedCount(s) });
+  h = await lib.health(s);
+  assert.equal(h.stalled, true, 'journal without a running filer should be flagged');
+  await fileAll();
+  h = await lib.health(s);
+  assert.equal(h.waiting, 0); assert.equal(h.interruptedBatch, 0); assert.equal(h.stalled, false);
 });
 
 await server.stop();

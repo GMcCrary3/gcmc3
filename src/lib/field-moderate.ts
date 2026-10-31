@@ -9,9 +9,24 @@ const info = document.querySelector<HTMLElement>('[data-info]')!;
 let key = '';
 try { key = sessionStorage.getItem(KEY) ?? ''; } catch { /* ignore */ }
 
-const auth = () => ({ authorization: `Bearer ${key}` });
+const auth = () => ({ 'x-field-admin-key': key });
+
+const healthEl = document.querySelector<HTMLElement>('[data-health]');
+async function showHealth() {
+  if (!healthEl) return;
+  const r = await api<{ filed?: number; waiting?: number; oldestWaitingSeconds?: number; interruptedBatch?: number; stalled?: boolean }>(
+    '/api/field/moderate?view=health', { headers: auth() });
+  if (!r.ok) { healthEl.textContent = 'filing status unavailable.'; return; }
+  const h = r.data;
+  healthEl.textContent = `filed: ${h.filed} · waiting to be filed: ${h.waiting}` +
+    (h.waiting ? ` (oldest ${h.oldestWaitingSeconds}s)` : '') +
+    (h.interruptedBatch ? ` · interrupted batch of ${h.interruptedBatch} being completed` : '') +
+    (h.stalled ? ' · FILING MAY BE STALLED — use “file waiting pieces now”, then check Netlify’s function logs.' : ' · filing healthy');
+  healthEl.classList.toggle('warn', Boolean(h.stalled));
+}
 
 async function view(which: 'review' | 'recent') {
+  void showHealth();
   info.textContent = 'loading…';
   const r = await api<{ total?: number; pieces?: ModPiece[] }>(`/api/field/moderate?view=${which}`, { headers: auth() });
   if (r.status === 401) {

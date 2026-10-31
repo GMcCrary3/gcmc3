@@ -46,7 +46,7 @@ version-dated in *settings → the field*. In summary:
 6. **Privacy.** Points to the privacy page.
 7. **No guarantee.** The field may change, pause or end.
 
-> ⚠️ These terms describe the system accurately but are **not legal advice**. Have them
+> ⚠️ These terms are intended to describe the system accurately but are **not legal advice**. Have them
 > reviewed before public launch.
 
 **Credit on every saved or shared image** (in its own band below the composition, never
@@ -123,40 +123,53 @@ Held pieces still wait for review; everything else appears at once.
 
 ## 4. If storage or filing fails
 
-**Leaving a piece** writes two keys unique to that piece (its index, then the piece).
-If storage is unavailable, the visitor is told it could not be reached and nothing is
-partly saved in a visible way; they can simply try again. A piece is never silently lost:
-either the visitor receives its link and removal key, or they see an error.
+No software can promise that data will never be lost or duplicated. What the field has
+is a design that makes loss and duplication unlikely, tests that exercise the failure
+cases, failures that are visible when they happen, and a manual recovery path.
 
-**Filing** (numbering pieces into pages of 100) runs once a minute as a scheduled function,
-and is designed so that **no piece can be lost or duplicated, whatever fails**:
+**Leaving a piece** writes two keys unique to that piece (its index, then the piece). If
+storage is unavailable, the request fails and the visitor is told the field could not be
+reached and to try again. The visitor either receives their piece's link and removal key,
+or sees an error. If only the first write succeeds, an orphaned index entry remains; it
+holds no content and is never shown.
 
-1. it takes a lease so two runs never overlap (a crashed run's lease expires in 55 s);
-2. it writes a **journal** of the batch (which piece gets which number and page) *before*
-   changing anything;
-3. it appends pieces to pages, skipping any already there;
-4. it advances the counter (never backwards);
-5. for each piece it points the index at its page, carries over any newer change made
-   meanwhile (e.g. a moderation decision), and **only then** deletes the waiting copy;
-6. it clears the journal.
+**Filing** (numbering pieces into pages of 100) runs once a minute as a scheduled function.
+Its safeguards:
 
-If a run stops at any point, the next run finds the journal and completes the same batch
-with the same numbers before doing anything else. Every change to a piece carries a
-revision number, and the higher revision always wins, so a moderation decision made while
-a piece is being filed is never undone.
+1. a lease so two runs do not overlap (a crashed run's lease expires after 55 s);
+2. a **journal** of the batch (which piece gets which number and page), written *before*
+   anything else changes;
+3. pieces are appended to pages, skipping any already there;
+4. the counter only moves forward;
+5. for each piece, its index is pointed at its page, any newer change made meanwhile (for
+   example, a moderation decision) is carried over, and **only then** is the waiting copy
+   deleted;
+6. the journal is cleared.
 
-**If scheduled filing stops entirely** (e.g. Netlify scheduling is down): new pieces stay
-safely in the waiting area and the newest 100 are still shown in the field at once; the
-moderation page still lists up to 500 waiting pieces. Use **file waiting pieces now** on
-the moderation page to file manually. Nothing is lost; numbering resumes where it stopped.
+If a run stops part-way, the next run finds the journal and completes the same batch with
+the same numbers before starting anything new. Every change to a piece carries a revision
+number, and the higher revision is kept when two copies briefly exist.
+
+**Seeing problems.**
+- Every filing run logs what it filed, any interrupted batch it completed, and any error
+  (Netlify → Logs → Functions → `field-file`). A failed run is reported as a failure.
+- The moderation page shows a **health line**: pieces filed, pieces waiting, the age of the
+  oldest waiting piece, any interrupted batch, and a warning ("filing may be stalled") if
+  anything has waited more than five minutes.
+
+**If scheduled filing stops** (for example, Netlify scheduling is unavailable): new pieces
+remain in the waiting area, the newest 100 still appear in the field, and the moderation
+page still lists up to 500 waiting pieces. Use **file waiting pieces now** on the
+moderation page; numbering resumes where it stopped.
 
 **If storage is unavailable for reading**, the field page says "the field is resting. try
-again shortly." The rest of the website (exhibition, artwork, writing) is unaffected.
+again shortly." The exhibition, artwork and writing pages are unaffected.
 
-**Verified** by `npm run test:field` (15 automated tests, run repeatedly): 300 simultaneous
-submissions all kept and numbered 1…N; filing deliberately crashed after every possible
-storage write (14 points) then recovered with no loss, no duplicates and a correct
-counter; moderation racing filing 20 times without a decision being lost; lease
-prevents overlap. These ran against a local Netlify Blobs server made to behave like
-production (atomic conditional writes, content ETags). **They must be repeated on the
-deployed site** with `scripts/field-verify.mjs` (see LAUNCH-CHECKLIST.md).
+**What has been tested.** `npm run test:field` (15 tests, run repeatedly, all passing)
+covers: 300 simultaneous submissions kept and numbered 1…N; filing deliberately
+interrupted after each of 14 storage writes, then recovered with no missing or duplicate
+pieces and a correct counter; moderation racing filing 20 times with the decision kept;
+the lease preventing overlap. These ran against a local stand-in for Netlify Blobs
+configured to behave like production (atomic conditional writes, content ETags). That is
+evidence, not proof: the same checks must be repeated on Netlify's real storage and
+functions with `scripts/field-verify.mjs` before launch (LAUNCH-CHECKLIST.md).
