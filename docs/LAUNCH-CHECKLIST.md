@@ -13,7 +13,8 @@ decision or on access.
 
 ## A. Production deployment checklist (in order)
 
-1. ⬜ **GitHub access.** Diagnosed: the remote URL is correct, the GitHub account
+1. ✅ **GitHub access** (resolved 31 Oct 2026; all commits pushed intact to
+   `claude/gilesmccrary-website-2ingnt`). Diagnosis at the time: the remote URL is correct, the GitHub account
    (GMcCrary3) is connected and can read the repository, and the repository is empty, so
    branch protection does not apply. The push is refused because **the Claude GitHub App is
    not installed on `GMcCrary3/gcmc3`** (or its installation is not linked to this Claude
@@ -22,7 +23,10 @@ decision or on access.
    https://claude.ai/customize/connectors?auth_start=github&auth_start_force=1. Then push
    branch `claude/gilesmccrary-website-2ingnt`. All local commits are preserved; nothing is
    force-pushed or discarded.
-2. ⬜ **Review and merge** to `main` (or deploy the branch, see 4).
+2. ⬜ **Review and merge.** The repository's only branch is
+   `claude/gilesmccrary-website-2ingnt` (there is no `main` yet). Either open a pull request
+   into a new `main`, or point Netlify's production branch at this branch for the private
+   preview. Then set the editor's `branch:` in `public/admin/config.yml` to match.
 3. ⬜ **Netlify site** from the repo (docs/DEPLOYMENT.md §1). Do **not** add the custom
    domain yet. Optionally enable Netlify *password protection* for the whole site (paid
    plans), or keep the `*.netlify.app` address private.
