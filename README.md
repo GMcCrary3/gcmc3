@@ -3,39 +3,48 @@
 **abstractly concrete** — *the art of unthinking.*
 Website for the visual art and writing of giles c mccrary iii.
 
-Built with [Astro](https://astro.build) (static site, fast image delivery), edited through
+An interactive exhibition, artwork archive, and literary archive.
+
+Built with [Astro](https://astro.build) (static site, fast image delivery; chosen over Next.js because
+the site needs no server, which keeps it faster, simpler, and more secure), edited through
 [Decap CMS](https://decapcms.org) at `/admin/`, and hosted on [Netlify](https://netlify.com)
 (HTTPS, custom domain, spam-filtered contact form).
 
 | route | what it is |
 |---|---|
-| `/` | hero (artwork no. 01), approved homepage copy, selected works, books |
-| `/artwork/` | selected works (01, 07, 08, 05, 06, 03), then the archive & process collection (09, 04, 02, 10) |
-| `/artwork/work-NN/` | one page per work: whole image, only the details that have been filled in |
-| `/writing/` and `/writing/<slug>/` | books, poetry, prose, publications |
-| `/about/` | artist statement, optional about text |
-| `/contact/` | contact form with spam protection and a privacy note |
-| `/privacy/` | how contact details and visitor data are handled |
+| `/` | full-viewport opening: artwork no. 01, *abstractly concrete.*, *the art of unthinking.*, the opening statement, "Enter the exhibition" / "Explore the artwork" |
+| `/exhibition/` | **the primary experience**: five movements of paintings, interludes and optional poem reveals, with a hideable movement guide, previous/next controls and enlargement |
+| `/abstract/` | *abstract your own concrete.* — visitors name something concrete and take it apart themselves (loosen, scatter, unweight, erase, drag); they can save the result as an image. Nothing they type leaves their browser |
+| `/artwork/` | selected works (01, 07, 08, 05, 06, 03), then archive & process (09, 04, 02, 10) |
+| `/artwork/work-NN/` | one page per work: the whole image, enlargeable, only confirmed details, a link to where it hangs in the exhibition |
+| `/writing/` and `/writing/<slug>/` | books, poems (exact line breaks), prose, publications, optional readings |
+| `/about/` | artist statement, biography, portrait, publications, exhibitions, press, professional contact. Each appears only once it has content |
+| `/contact/`, `/privacy/` | contact form with spam protection, and how contact details are handled |
 | `/admin/` | the content editor |
 
 ## Before launch: what still has to be supplied
 
-Nothing on the site was invented. Fields left blank are **not published**. The site
-ships with **editorial notes** (dashed boxes) showing where content still has to go.
-To see what's outstanding at any point, run `npm run status`.
+Nothing on the site was invented. Fields left blank are **not published**. Text that
+has not been approved (interludes, the working artist statement) is visible only while
+**editorial notes** are switched on. Run `npm run status` to see what's outstanding.
 
-1. **The ten original image files.** Save them as `src/assets/artwork/01.jpg` … `10.jpg`, using
-   the upload numbering (`.png` / `.webp` also work, with the same number as the name).
-   No image is shown until the real file is there.
-2. **Approved homepage copy:** `src/content/pages/home.md` (paste below the `---` lines).
-3. **Approved artist statement:** `src/content/pages/statement.md`.
-4. **Image descriptions (alt text)** for each work. No. 01 has a draft taken from the brief; please confirm it.
-5. Optional per work: title, year, medium, dimensions, availability, note.
-6. Optional per book: description, year, publisher, links, cover, excerpt.
-7. **Privacy page:** read `src/pages/privacy.astro` and confirm the wording.
-8. **Analytics:** off until the artist approves. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#analytics).
-9. When everything is in, set `"showEditorialNotes": false` in `src/data/site.json` (or under
-   *settings* in the editor). The notes then disappear.
+1. **Better photographs** of the low-resolution works: 10, 09, 03, 04, 06, 05 and 02 (all under
+   800px wide). Replace a file under the same number. The site never enlarges an image
+   beyond its native size on detail pages or in the exhibition.
+2. **Artist statement**: a working version from the approved brief is in place; final
+   editorial pass, then tick *approved*.
+3. **Interludes**: the proposed prologue interlude and the movement II slot await the
+   artist's text and approval.
+4. **Poems**: add approved poems under *writing*, then pair them with paintings in
+   *exhibition* (see docs/ADDING-WORK.md). No poem is paired until the artist chooses.
+5. **Closing text** for movement V, *Without conclusion*.
+6. **Image descriptions (alt text)**: drafts for all ten works. Please review.
+7. Optional: titles, years, media, dimensions, descriptions; biography and portrait; book details.
+8. **Privacy page** and **analytics** approval. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#analytics).
+9. At launch, set *show editorial notes* to off under *settings*.
+
+The full launch checklist, with what has and has not been verified, is in
+[docs/LAUNCH-CHECKLIST.md](docs/LAUNCH-CHECKLIST.md).
 
 ## Working on the site locally
 
@@ -62,8 +71,10 @@ npm run status       # list missing images, empty fields, unapproved copy
 src/assets/artwork/      original artwork files (never altered; web copies are made at build)
 src/content/artwork/     one .md file per work (fields + optional note)
 src/content/writing/     one .md file per book, poem, prose piece, or publication
-src/content/pages/       approved site copy: home, statement, about
-src/data/site.json       site settings: byline, concept line, hero focus, form, analytics
+src/content/exhibition/  the five movements (and prologue): sequence, interludes, poem pairings
+src/content/pages/       site copy: home, statement, about (biography, portrait, lists)
+src/data/site.json       settings: identity lines, opening statement, hero, gallery order,
+                         the abstract-your-own space's wording, form, analytics
 src/pages/               the routes
 src/components/          image, caption, SEO, and editorial-note components
 public/admin/            the content editor

@@ -1,0 +1,294 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ExhibitionWork from '../../components/ExhibitionWork.astro';
+import EditorialNote from '../../components/EditorialNote.astro';
+import {
+  getArtworks, getMovements, getWriting, movementAnchor, movementRange, interludeIsPublic,
+  type Movement, type MovementItem,
+} from '../../lib/content';
+import { render } from 'astro:content';
+import site from '../../data/site.json';
+
+const works = new Map((await getArtworks()).map((w) => [w.id, w]));
+const writing = new Map((await getWriting()).map((w) => [w.id, w]));
+const { prologue, movements } = await getMovements();
+const closing = movements[movements.length - 1];
+const ClosingText = closing?.body?.trim() ? (await render(closing)).Content : null;
+const firstWork = movements.flatMap((m) => m.data.items).find((i) => i.type === 'artwork') as
+  | Extract<MovementItem, { type: 'artwork' }>
+  | undefined;
+const show = site.showEditorialNotes;
+let firstImage = true;
+const isFirst = () => { const f = firstImage; firstImage = false; return f; };
+---
+<BaseLayout
+  title="the exhibition"
+  description={`abstractly concrete. ${site.openingStatement} An exhibition in five movements by ${site.byline}.`}
+  image={firstWork ? works.get(firstWork.work)?.data.image : undefined}
+  cropImage
+  bodyClass="has-guide"
+>
+  <header class="ex-intro wrap" id="top-of-exhibition">
+    <p class="label">the exhibition</p>
+    <h1>{site.concept}.</h1>
+    <p class="ex-secondary">{site.secondaryLine}</p>
+    <blockquote class="ex-statement"><p>{site.openingStatement}</p></blockquote>
+    <p class="ex-howto">
+      Move at your own pace. Follow the sequence, or go directly to any movement.
+    </p>
+    <ol class="ex-index">
+      {movements.map((m) => (
+        <li>
+          <a href={`#${movementAnchor(m)}`}>
+            <span class="num">{m.data.numeral}</span>
+            <span class="t">{m.data.title}</span>
+            {movementRange(m, works) && <span class="label">{movementRange(m, works)}</span>}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </header>
+
+  {prologue && prologue.data.items.map((item) => item.type === 'interlude' && (
+    (interludeIsPublic(item) || (show && item.text)) && (
+      <aside class="interlude wrap" aria-label={item.label ?? 'interlude'} data-reveal>
+        {item.label && <p class="label">{item.label}</p>}
+        <p class="interlude-text">{item.text}</p>
+        {!item.approved && <EditorialNote>Proposed text, shown only while editorial notes are on. {item.source} Approve it in the editor (exhibition → prologue) to publish it.</EditorialNote>}
+      </aside>
+    )
+  ))}
+
+  {movements.map((m: Movement, mi) => {
+    const prev = movements[mi - 1];
+    const next = movements[mi + 1];
+    const isClosing = m === closing;
+    return (
+      <section class="movement" id={movementAnchor(m)} aria-labelledby={`${movementAnchor(m)}-h`} data-movement={m.data.numeral} data-title={m.data.title}>
+        <header class="mv-card wrap" data-reveal>
+          <p class="mv-num" aria-hidden="true">{m.data.numeral}</p>
+          <h2 id={`${movementAnchor(m)}-h`}>
+            <span class="visually-hidden">Movement {m.data.numeral}: </span>{m.data.title}
+          </h2>
+          {movementRange(m, works) && <p class="label">{movementRange(m, works)}</p>}
+        </header>
+
+        <div class="wrap mv-body">
+          {m.data.items.map((item) => {
+            if (item.type === 'artwork') {
+              const work = works.get(item.work);
+              if (!work) return show && <EditorialNote>Unknown artwork “{item.work}” in this movement.</EditorialNote>;
+              const poem = item.poem ? writing.get(item.poem) : undefined;
+              return <ExhibitionWork work={work} poem={poem} eager={isFirst()} />;
+            }
+            if (item.type === 'interlude') {
+              if (interludeIsPublic(item)) {
+                return (
+                  <aside class="interlude" aria-label={item.label ?? 'interlude'} data-reveal>
+                    {item.label && <p class="label">{item.label}</p>}
+                    <p class="interlude-text">{item.text}</p>
+                  </aside>
+                );
+              }
+              return show && (
+                <div class="interlude pending">
+                  {item.text && <p class="interlude-text">{item.text}</p>}
+                  <EditorialNote>
+                    Interlude {item.text ? '(proposed, not yet approved)' : 'slot'}. {item.source}
+                    {' '}It appears to visitors once its text is entered and approved.
+                  </EditorialNote>
+                </div>
+              );
+            }
+            return show && <div class="interlude pending"><EditorialNote>Poem pairing. {item.note}</EditorialNote></div>;
+          })}
+
+          {isClosing && (
+            <div class="closing" data-reveal>
+              {ClosingText ? <div class="prose closing-text"><ClosingText /></div> : (
+                <EditorialNote>
+                  Closing text, to be supplied by the artist (exhibition → Without conclusion → text).
+                  Until then, only the ways onward below are shown.
+                </EditorialNote>
+              )}
+              <ul class="onward">
+                <li><a href="#top-of-exhibition">return to the beginning</a></li>
+                <li><a href="/abstract/">{site.abstractRoom.title}</a></li>
+                <li><a href="/artwork/">the artwork archive</a></li>
+                <li><a href="/writing/">writing</a></li>
+                <li><a href="/">leave the exhibition</a></li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <nav class="mv-pager wrap" aria-label={`Movement ${m.data.numeral} navigation`}>
+          {prev ? <a href={`#${movementAnchor(prev)}`} rel="prev"><span class="label">previous movement</span>{prev.data.numeral} · {prev.data.title}</a> : <span />}
+          {next ? <a href={`#${movementAnchor(next)}`} rel="next" class="next"><span class="label">next movement</span>{next.data.numeral} · {next.data.title}</a> : <span />}
+        </nav>
+      </section>
+    );
+  })}
+
+  <nav class="guide" aria-label="Exhibition guide" data-guide>
+    <a class="g-step g-prev" href="#top-of-exhibition" data-guide-prev aria-label="Previous movement"><span aria-hidden="true">←</span></a>
+    <ol class="g-list">
+      {movements.map((m) => (
+        <li><a href={`#${movementAnchor(m)}`} data-guide-link={m.data.numeral} title={m.data.title}>
+          <span class="g-num">{m.data.numeral}</span><span class="visually-hidden"> {m.data.title}</span>
+        </a></li>
+      ))}
+    </ol>
+    <p class="g-current label" aria-live="polite" data-guide-current></p>
+    <a class="g-step g-next" href={movements[0] ? `#${movementAnchor(movements[0])}` : '#'} data-guide-next aria-label="Next movement"><span aria-hidden="true">→</span></a>
+    <button type="button" class="g-hide text-btn" data-guide-toggle aria-pressed="false">hide guide</button>
+  </nav>
+  <button type="button" class="g-show text-btn" data-guide-show hidden>show guide</button>
+
+  <script>
+    import '../../lib/exhibition-guide';
+  </script>
+</BaseLayout>
+
+<style>
+  :global(main) { scroll-margin-top: 0; }
+  .ex-intro { padding-block: var(--space-4) var(--space-3); }
+  .ex-intro h1 {
+    font-size: clamp(3rem, 1.6rem + 6.5vw, 8rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    margin-top: 1.25rem;
+  }
+  .ex-secondary { font-style: italic; font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2.1rem); margin: 0.75rem 0 0; color: var(--ink-soft); }
+  .ex-statement {
+    margin: var(--space-3) 0 0;
+    max-width: 30ch;
+    font-size: clamp(1.5rem, 1.15rem + 1.4vw, 2.4rem);
+    line-height: 1.25;
+  }
+  .ex-statement p { margin: 0; }
+  .ex-howto { margin-top: var(--space-3); color: var(--slate); font-family: var(--sans); font-size: 0.9375rem; max-width: 42ch; }
+  .ex-index { list-style: none; padding: 0; margin: 1.5rem 0 0; border-top: 1px solid var(--rule); max-width: 46rem; }
+  .ex-index li { border-bottom: 1px solid var(--rule); }
+  .ex-index a {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr auto;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    text-decoration: none;
+  }
+  .ex-index .num { font-size: 1.25rem; color: var(--slate); }
+  .ex-index .t { font-size: 1.375rem; }
+  .ex-index a:hover .t { color: var(--oxide); }
+
+  .movement { padding-top: var(--space-4); }
+  .mv-card {
+    min-height: 70svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+    border-top: 1px solid var(--rule);
+  }
+  .mv-num {
+    font-size: clamp(4.5rem, 2rem + 10vw, 11rem);
+    line-height: 0.9;
+    margin: 0;
+    color: var(--oxide);
+    font-weight: 400;
+  }
+  .mv-card h2 { font-size: clamp(2.25rem, 1.4rem + 3.5vw, 4.5rem); font-weight: 400; }
+
+  .interlude {
+    min-height: 60svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--space-4);
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+  .interlude.pending { min-height: 0; padding-block: var(--space-3); }
+  .interlude-text {
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 3rem);
+    line-height: 1.2;
+    font-style: italic;
+    margin: 0.75rem 0 0;
+  }
+
+  .closing { max-width: 40rem; margin: var(--space-4) auto 0; }
+  .closing-text { font-size: 1.375rem; }
+  .onward { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: 0.5rem; }
+  .onward a { font-size: 1.5rem; text-decoration: none; }
+  .onward a:hover { color: var(--oxide); text-decoration: underline; }
+
+  .mv-pager { display: flex; justify-content: space-between; gap: 1rem; padding-block: var(--space-3) 0; }
+  .mv-pager a { text-decoration: none; display: grid; gap: 0.2rem; font-size: 1.125rem; }
+  .mv-pager a:hover { color: var(--oxide); }
+  .mv-pager .next { text-align: right; }
+
+  /* ----- the guide: a quiet progress indicator, fully optional ----- */
+  .guide {
+    position: fixed;
+    z-index: 20;
+    font-family: var(--sans);
+    background: color-mix(in srgb, var(--ivory) 92%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .g-list { list-style: none; margin: 0; padding: 0; display: flex; }
+  .g-list a, .g-step {
+    display: grid;
+    place-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    text-decoration: none;
+    color: var(--slate);
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+  }
+  .g-list a:hover, .g-step:hover { color: var(--ink); }
+  .g-list a[aria-current='true'] { color: var(--oxide); }
+  .g-list a[aria-current='true'] .g-num { border-bottom: 1px solid var(--oxide); }
+  .g-step { display: none; }
+  .g-current { display: none; margin: 0; text-transform: none; letter-spacing: 0.06em; }
+  .g-hide { font-size: 0.6875rem; }
+  .g-show { position: fixed; z-index: 20; right: var(--gutter); bottom: 1rem; font-size: 0.6875rem; background: var(--ivory); padding: 0.5rem 0.75rem; }
+
+  /* Mobile & tablet: a slim bar along the bottom with previous / current / next. */
+  @media (max-width: 63.99em) {
+    :global(body.has-guide) { padding-bottom: 3.5rem; }
+    .guide {
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem var(--gutter);
+      border-top: 1px solid var(--rule);
+    }
+    .g-list { display: none; }
+    :global(html.js) .g-step { display: grid; }
+    :global(html.js) .g-current { display: block; flex: 1; text-align: center; }
+    :global(html:not(.js)) .g-list { display: flex; flex: 1; justify-content: space-around; }
+    .g-hide { margin-left: 0.25rem; }
+  }
+  /* Desktop: a vertical index of numerals at the right edge. */
+  @media (min-width: 64em) {
+    .guide {
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 0.25rem;
+      border: 1px solid var(--rule);
+    }
+    .g-list { flex-direction: column; }
+    .g-hide { writing-mode: vertical-rl; transform: rotate(180deg); padding: 0.5rem 0; }
+  }
+  :global(body.guide-hidden) .guide { display: none; }
+  :global(body.guide-hidden.has-guide) { padding-bottom: 0; }
+</style>

@@ -1,65 +1,74 @@
-# Adding new work
+# Adding and arranging work
 
-There are two ways to add work. Both end up in the same place, and the site rebuilds
-itself in about two minutes.
+Everything below is done in the editor at **https://gilesmccrary.com/admin/** (sign in with
+GitHub). Every change is saved as a draft, then published, and the site rebuilds itself in
+a couple of minutes. No code needs editing.
 
-## A. With the editor (recommended)
+## Add a painting
 
-1. Go to **https://gilesmccrary.com/admin/** and sign in with GitHub.
-2. Choose **artwork → New work**.
-3. Fill in:
-   - **reference number**: the next free number, e.g. `11`. This becomes the page address `/artwork/work-11/`.
-   - **original image file**: upload the original photograph of the work. Use JPEG or PNG
-     in sRGB, at least 2500px on the long side. Don't crop or filter it; the site shows it whole.
-   - **image description (alt text)**: one or two plain sentences on what can be seen.
-   - **title / year / medium / dimensions / availability**: only what is known.
-     *Anything left blank is not published.*
-   - **collection**: *selected works* or *archive & process*.
-   - **order**: position within the collection (1 comes first).
-   - **interpretation or note**: optional text shown beside the work.
-4. Click **Save**, then **Publish** (with the review workflow on, set status to *Ready* and
-   then **Publish now**).
+1. **artwork → New work.**
+2. **catalogue number**: the next number in your index, e.g. `11`. The page becomes `/artwork/work-11/`.
+3. **original image file**: the best photograph you have, straight-on, uncropped beyond
+   the canvas edge, unfiltered, JPEG or PNG, ideally 2500px+ on the long side. Keep your own master
+   copy too; the site stores this file untouched and makes web copies from it.
+4. **image description (alt text)**: what can be seen, in a sentence or two.
+5. **title / year / medium / dimensions / description**: only what is confirmed. *Blank fields are
+   never published, and a work without a title is shown as “no. 11”.*
+6. Optional: **detail photographs**, **works within this photograph** (for one photo of
+   several works), **interpretation or note**.
+7. **Publish.** Then place it (below).
 
-To **move a work** from the archive into selected works, open it, change *collection* to
-*selected works*, set *order*, and publish.
+To **replace a photograph**, open the work and upload the new file in *original image file*.
 
-To **change the homepage hero**, go to *settings → site settings → hero*. Choose the
-work, and adjust *crop focus* (`50% 45%` = horizontally centred, slightly above middle)
-so the most important part of the painting stays visible. The hero is the only place
-an image is ever cropped.
+## Place it on the artwork page
 
-## Writing
+**settings → site settings → gallery.** Add it to *selected works* or the second section
+(*archive & process*), and drag to set the order. Placement carries no judgement about a
+work's status. A work in neither list still appears at the end of the second section.
 
-**writing → New writing**. Choose a *kind* (book, poetry, prose, publication). For poems,
-type the poem in the text box: line breaks are kept as written. Description, year,
-publisher, cover, and links are all optional and are not shown until filled in.
+## Put it in the exhibition
 
-## B. By hand (for whoever maintains the code)
+**exhibition → choose a movement → sequence.** Add a *painting*, choose the work, and drag
+it into place. The same screen is where you:
 
-1. Copy the original file to `src/assets/artwork/11.jpg`.
-2. Create `src/content/artwork/work-11.md`:
+- **reorder** works within a movement;
+- add an **interlude** (text between works). Interludes stay hidden from visitors until
+  *approved by the artist* is ticked;
+- **pair a poem** with a painting. Choose the poem in that painting's *poem visitors may
+  reveal* field. Visitors see a quiet "read the poem" control and decide for themselves
+  whether to open it;
+- write the **closing text** (movement V, *text* field).
 
-   ```md
-   ---
-   ref: "11"
-   image: /src/assets/artwork/11.jpg
-   alt: "What can be seen in the image."
-   title: ""
-   year: ""
-   medium: ""
-   dimensions: ""
-   availability: ""
-   collection: archive
-   order: 5
-   draft: false
-   ---
-   Optional interpretation or note, in Markdown.
-   ```
+Movement names are navigation labels, not titles for the paintings.
 
-3. `npm run status` to check, `npm run dev` to look, then commit and push to `main`.
+## Add a poem or other writing
 
-## Site copy
+**writing → New writing.**
 
-Homepage copy, the artist statement, and the about text are under **site copy** in the
-editor (or in `src/content/pages/`). Paste approved text exactly. Capitalisation and
-wording are rendered as written.
+- **kind**: poem, prose / essay, book, or publication (elsewhere).
+- **text**: paste the poem exactly. Every line break, blank line between stanzas, leading
+  space (indent) and punctuation is kept as written. `*asterisks*` around words make italics.
+- **from the book**: links a poem or excerpt to *Beyond? Beyond: words for a captive audience*
+  or *act iii*; the book's page then lists it.
+- **recorded reading**: optional audio file. It never plays by itself.
+- **links**: where to buy or read published editions.
+
+## Splitting no. 10 later
+
+No. 10 is one photograph showing three works, recorded under *works within this
+photograph*. To give them separate catalogue entries later, create works `10a`, `10b` and
+`10c`, each with its own photograph, and remove (or keep) the grouped entry. Update the
+gallery and the exhibition to use the new entries.
+
+## Site copy and settings
+
+- **site copy**: homepage introduction (optional), artist statement, about (biography,
+  portrait, publications, exhibitions, press, professional contact).
+- **settings**: the identity lines, opening statement and button labels, the homepage crop
+  focus, gallery order, the wording of *abstract your own concrete*, availability display,
+  contact form, analytics, and the editorial-notes switch.
+
+## By hand (for whoever maintains the code)
+
+Files live in `src/content/` (one Markdown file per work, poem, book, movement) and
+`src/data/site.json`. Run `npm run status` to see what's missing, `npm run dev` to preview.

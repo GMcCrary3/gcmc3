@@ -1,0 +1,93 @@
+---
+/**
+ * One shared, accessible enlargement viewer. Any link with [data-enlarge]
+ * pointing at an image opens here; without JavaScript the link simply opens
+ * the original file. The image is shown whole, with nothing laid over it.
+ */
+---
+<dialog id="lightbox" class="lightbox" aria-labelledby="lightbox-caption">
+  <div class="lb-bar">
+    <p id="lightbox-caption" class="label lb-caption"></p>
+    <button type="button" class="text-btn lb-close" data-close>close <span aria-hidden="true">×</span></button>
+  </div>
+  <div class="lb-stage" data-close-backdrop>
+    <img class="lb-img" alt="" decoding="async" />
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('#lightbox');
+  if (dialog && typeof dialog.showModal === 'function') {
+    const img = dialog.querySelector<HTMLImageElement>('.lb-img')!;
+    const caption = dialog.querySelector<HTMLElement>('.lb-caption')!;
+    let opener: HTMLElement | null = null;
+
+    document.addEventListener('click', (e) => {
+      const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-enlarge]');
+      if (!link || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      opener = link;
+      img.src = link.href;
+      img.alt = link.dataset.alt ?? '';
+      caption.textContent = link.dataset.caption ?? '';
+      dialog.showModal();
+      document.documentElement.classList.add('lb-open');
+    });
+
+    const close = () => dialog.close();
+    dialog.querySelector('[data-close]')?.addEventListener('click', close);
+    dialog.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).matches('[data-close-backdrop], dialog')) close();
+    });
+    dialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('lb-open');
+      img.removeAttribute('src');
+      opener?.focus();
+    });
+  }
+</script>
+
+<style>
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--ivory);
+    color: var(--ink);
+  }
+  .lightbox::backdrop { background: var(--ivory); }
+  .lightbox[open] { display: grid; grid-template-rows: auto 1fr; }
+  .lb-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem var(--gutter);
+  }
+  .lb-caption { margin: 0; }
+  .lb-close { font-size: 0.75rem; }
+  .lb-stage {
+    display: grid;
+    place-items: center;
+    padding: 0 var(--gutter) var(--gutter);
+    min-height: 0;
+    cursor: zoom-out;
+  }
+  .lb-img {
+    max-width: 100%;
+    max-height: calc(100dvh - 5rem);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    cursor: default;
+  }
+  :global(html.lb-open) { overflow: hidden; }
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] { animation: lb-in 300ms var(--ease); }
+    @keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
+  }
+</style>

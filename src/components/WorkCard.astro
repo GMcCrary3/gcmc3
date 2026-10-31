@@ -7,8 +7,10 @@ interface Props {
   sizes: string;
   eager?: boolean;
   showMeta?: boolean;
+  /** e.g. "II · What remains" */
+  movement?: string;
 }
-const { work, sizes, eager = false, showMeta = true } = Astro.props;
+const { work, sizes, eager = false, showMeta = true, movement } = Astro.props;
 const d = work.data;
 const label = artworkLabel(work);
 const meta = [d.year, d.medium].filter(Boolean).join(', ');
@@ -22,6 +24,7 @@ const meta = [d.year, d.medium].filter(Boolean).join(', ');
     <figcaption>
       <a href={`/artwork/${work.id}/`} class:list={['work-title', { untitled: !d.title }]}>{label}</a>
       {meta && <span class="label">{meta}</span>}
+      {movement && <span class="label mv">{movement}</span>}
     </figcaption>
   )}
 </figure>
@@ -49,7 +52,8 @@ const meta = [d.year, d.medium].filter(Boolean).join(', ');
   .work-title.untitled {
     font-family: var(--sans);
     font-size: 0.8125rem;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
   }
+  .mv { width: 100%; }
   .work-title:hover { text-decoration: underline; }
 </style>

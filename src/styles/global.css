@@ -1,23 +1,26 @@
-@import '@fontsource-variable/newsreader/opsz.css';
-@import '@fontsource-variable/newsreader/opsz-italic.css';
-@import '@fontsource-variable/inter-tight/index.css';
+@import '@fontsource-variable/cormorant-garamond/wght.css';
+@import '@fontsource-variable/cormorant-garamond/wght-italic.css';
+@import '@fontsource-variable/inter/wght.css';
 
 /* ------------------------------------------------------------------
-   GilesMcCrary.com — abstractly concrete
-   Gallery ivory, dark ink, generous space. The paintings carry the colour.
+   GilesMcCrary.com — abstractly concrete. an interactive exhibition.
+   Ivory, ink, slate; oxide red used sparingly for focus and the current place.
+   The paintings carry the colour.
    ------------------------------------------------------------------ */
 
 :root {
-  --ivory: #f5f1e8;
-  --ivory-deep: #ece6d9;
-  --ink: #161513;
-  --ink-soft: #3a3833;
-  --muted: #6c675e; /* 5.0:1 on ivory */
-  --rule: #d8d1c2;
-  --focus: #161513;
+  --ivory: #f3f0e8;      /* primary background */
+  --ivory-deep: #e9e4d8;
+  --ink: #18191b;        /* primary text — 16:1 on ivory */
+  --ink-soft: #33363a;
+  --slate: #53616d;      /* secondary — 5.6:1 on ivory */
+  --muted: var(--slate);
+  --oxide: #982e37;      /* accent — 6.6:1 on ivory; used sparingly */
+  --rule: #d6d0c3;
+  --focus: #982e37;
 
-  --serif: 'Newsreader Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-  --sans: 'Inter Tight Variable', 'Helvetica Neue', Arial, sans-serif;
+  --serif: 'Cormorant Garamond Variable', 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+  --sans: 'Inter Variable', Inter, 'Helvetica Neue', Arial, sans-serif;
 
   --gutter: clamp(1rem, 4vw, 3.5rem);
   --measure: 36rem;
@@ -45,9 +48,9 @@ body {
   background: var(--ivory);
   color: var(--ink);
   font-family: var(--serif);
-  font-size: clamp(1.0625rem, 0.98rem + 0.3vw, 1.1875rem);
-  line-height: 1.6;
-  font-optical-sizing: auto;
+  font-size: clamp(1.1875rem, 1.1rem + 0.35vw, 1.375rem);
+  font-weight: 450;
+  line-height: 1.55;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -76,6 +79,7 @@ a:hover { text-decoration-color: currentColor; }
 
 h1, h2, h3 {
   font-weight: 400;
+  font-family: var(--serif);
   line-height: 1.1;
   letter-spacing: -0.01em;
   margin: 0;
@@ -91,9 +95,9 @@ p { margin: 0 0 1em; text-wrap: pretty; }
   font-family: var(--sans);
   font-size: 0.75rem;
   line-height: 1.4;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: lowercase;
-  color: var(--muted);
+  color: var(--slate);
   font-weight: 450;
 }
 
@@ -114,8 +118,51 @@ p { margin: 0 0 1em; text-wrap: pretty; }
   border-left: 1px solid var(--rule);
   font-style: italic;
 }
-/* Poetry keeps its line breaks and indentation */
-.prose.verse, .prose .verse { white-space: pre-line; }
+/* Poems: rendered stanza by stanza, line by line, spacing preserved. */
+.poem { font-size: 1.25em; line-height: 1.5; }
+.poem .stanza { margin: 0 0 1.4em; }
+.poem .line { display: block; white-space: pre-wrap; padding-left: 1.5em; text-indent: -1.5em; }
+.poem .stanza:last-child { margin-bottom: 0; }
+
+/* Buttons and links that act as controls */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 0.95rem 1.6rem;
+  cursor: pointer;
+  transition: background-color 250ms var(--ease), color 250ms var(--ease), border-color 250ms var(--ease);
+}
+.btn.primary { background: var(--ink); color: var(--ivory); }
+@media (hover: hover) {
+  .btn:hover { background: var(--ink); color: var(--ivory); }
+  .btn.primary:hover { background: var(--oxide); border-color: var(--oxide); }
+}
+.btn:active { background: var(--ink); color: var(--ivory); }
+.text-btn {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+  background: none;
+  border: 0;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.35em;
+  transition: color 200ms var(--ease), text-decoration-color 200ms var(--ease);
+}
+.text-btn:hover { color: var(--ink); text-decoration-color: currentColor; }
 
 .visually-hidden {
   position: absolute !important;
@@ -143,9 +190,9 @@ p { margin: 0 0 1em; text-wrap: pretty; }
   padding-block: var(--space-4) var(--space-3);
 }
 .page-head h1 {
-  font-size: clamp(2.5rem, 1.6rem + 4vw, 5rem);
-  font-weight: 300;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.75rem, 1.8rem + 4.5vw, 5.75rem);
+  font-weight: 400;
+  letter-spacing: -0.015em;
 }
 .page-head .label { display: block; margin-bottom: 1.25rem; }
 
@@ -155,6 +202,7 @@ p { margin: 0 0 1em; text-wrap: pretty; }
    Motion — subtle fade-ins only when the visitor allows motion and JS runs.
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
   html.js [data-reveal] {
     opacity: 0;
     transform: translateY(12px);

@@ -1,0 +1,120 @@
+---
+/**
+ * abstract your own concrete.
+ * A space where visitors name something concrete and take it apart themselves.
+ * Everything happens in the visitor's browser: nothing is sent, stored, or
+ * interpreted. The site offers the space; the meaning is theirs.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import site from '../data/site.json';
+const room = site.abstractRoom;
+---
+<BaseLayout title={room.title} description={`${room.title} ${room.prompt}`}>
+  <header class="page-head wrap">
+    <span class="label">{site.concept}</span>
+    <h1>{room.title}</h1>
+  </header>
+
+  <div class="wrap room" data-room>
+    <noscript><p class="prose">This space needs JavaScript to work. Everything else on the site does not.</p></noscript>
+
+    <form class="name-form" data-name-form>
+      <label for="concrete" class="prompt">{room.prompt}</label>
+      <p class="hint" id="concrete-hint">{room.hint}</p>
+      <div class="row">
+        <input id="concrete" name="concrete" type="text" maxlength="32" autocomplete="off" spellcheck="false" required aria-describedby="concrete-hint privacy-hint" />
+        <button type="submit" class="btn primary">{room.begin}</button>
+      </div>
+      <p class="label" id="privacy-hint">what you type stays in your browser. nothing is sent or saved.</p>
+    </form>
+
+    <section class="field-wrap" data-field-wrap hidden aria-label="Your concrete, to abstract">
+      <div class="field" data-field role="group" aria-label="The letters of your word. Select a letter, then use the arrow keys to move it, [ and ] to turn it, Delete to erase it." aria-describedby="keys-help">
+        <p class="remains" data-remains hidden>{room.empty}</p>
+      </div>
+
+      <div class="controls" role="toolbar" aria-label="Ways to abstract">
+        <button type="button" class="btn" data-act="loosen">loosen</button>
+        <button type="button" class="btn" data-act="scatter">scatter</button>
+        <button type="button" class="btn" data-act="unweight">unweight</button>
+        <button type="button" class="btn" data-act="erase">erase a letter</button>
+      </div>
+      <div class="controls secondary">
+        <button type="button" class="text-btn" data-act="restore">return to concrete</button>
+        <button type="button" class="text-btn" data-act="keep">keep it (save image)</button>
+        <button type="button" class="text-btn" data-act="again">name something else</button>
+      </div>
+      <p class="label keys" id="keys-help">
+        drag any letter, or select it and use the arrow keys (shift for larger steps), [ and ] to turn it, delete to erase it.
+      </p>
+      <p class="visually-hidden" aria-live="polite" data-live></p>
+    </section>
+  </div>
+
+  <script>
+    import '../lib/abstract-room';
+  </script>
+</BaseLayout>
+
+<style>
+  .room > * { max-width: 64rem; }
+  :global(html:not(.js)) .name-form { display: none; }
+  .name-form[hidden], .field-wrap[hidden] { display: none; }
+  .name-form { display: grid; gap: 0.75rem; max-width: 40rem; }
+  .prompt { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.5rem); line-height: 1.2; }
+  .hint { margin: 0; color: var(--ink-soft); }
+  .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; margin-top: 0.75rem; }
+  .row input {
+    flex: 1 1 14rem;
+    font: inherit;
+    font-size: 1.75rem;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 0.35rem 0;
+  }
+  .row input:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+
+  .field {
+    position: relative;
+    container-type: inline-size;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--ivory-deep);
+    outline: 1px solid var(--rule);
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+  }
+  @media (max-width: 40em) { .field { aspect-ratio: 3 / 4; } }
+  .field :global(.glyph) {
+    position: absolute;
+    left: 0; top: 0;
+    transform: translate(-50%, -50%) translate(var(--x), var(--y)) rotate(var(--r)) scale(var(--s));
+    font-size: var(--fs);
+    line-height: 1;
+    padding: 0.05em 0.08em;
+    background: none;
+    border: 0;
+    color: var(--ink);
+    cursor: grab;
+    font-family: var(--serif);
+    font-weight: 450;
+    white-space: pre;
+  }
+  .field :global(.glyph.sans) { font-family: var(--sans); font-weight: 300; }
+  .field :global(.glyph.slate) { color: var(--slate); }
+  .field :global(.glyph:active) { cursor: grabbing; }
+  .field :global(.glyph:focus-visible) { outline: 1px solid var(--oxide); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .field :global(.glyph:not(.dragging)) { transition: transform 900ms var(--ease), opacity 600ms var(--ease); }
+  }
+  .remains { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-style: italic; font-size: clamp(1.5rem, 4cqw, 2.5rem); color: var(--slate); }
+  .remains[hidden] { display: none; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; }
+  .controls.secondary { gap: 0.25rem 1.5rem; margin-top: 0.75rem; }
+  .keys { margin-top: 1rem; max-width: 44rem; }
+</style>

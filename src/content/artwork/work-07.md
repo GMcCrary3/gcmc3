@@ -7,7 +7,8 @@ year: ""
 medium: ""
 dimensions: ""
 availability: ""
-collection: selected
-order: 2
+description: ""
+details: []
+parts: []
 draft: false
 ---

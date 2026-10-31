@@ -1,0 +1,133 @@
+---
+/**
+ * One painting as hung in the exhibition: the whole work, generous space,
+ * a quiet caption beneath (never over the image), an enlarge control, and —
+ * only if the artist has paired one — a poem the visitor may choose to reveal.
+ */
+import ArtworkImage from './ArtworkImage.astro';
+import { artworkAlt, artworkLabel, poemToHtml, type Artwork, type Writing } from '../lib/content';
+import { originalUrl } from '../lib/images';
+
+interface Props { work: Artwork; poem?: Writing; eager?: boolean }
+const { work, poem, eager = false } = Astro.props;
+const d = work.data;
+const label = artworkLabel(work);
+const meta = [d.year, d.medium].filter(Boolean).join(', ');
+const original = originalUrl(d.image);
+const poemId = `poem-${work.id}`;
+---
+<figure class:list={['ex-work', { 'has-poem': poem }]} data-reveal aria-labelledby={`cap-${work.id}`}>
+  <div class="ex-plate">
+    {original ? (
+      <a
+        class="ex-enlarge"
+        href={original}
+        data-enlarge
+        data-alt={artworkAlt(work)}
+        data-caption={label}
+        aria-label={`Enlarge ${label}`}
+      >
+        <ArtworkImage src={d.image} alt={artworkAlt(work)} sizes="(min-width: 64em) 66vw, 100vw" widths={[480, 720, 960, 1280, 1600, 2000]} eager={eager} />
+      </a>
+    ) : (
+      <ArtworkImage src={d.image} alt={artworkAlt(work)} sizes="100vw" />
+    )}
+  </div>
+
+  <figcaption class="ex-caption" id={`cap-${work.id}`}>
+    <span class:list={['ex-label', { untitled: !d.title }]}>{label}</span>
+    {meta && <span class="label">{meta}</span>}
+    <span class="ex-actions">
+      {original && (
+        <a class="text-btn" href={original} data-enlarge data-alt={artworkAlt(work)} data-caption={label}>enlarge</a>
+      )}
+      <a class="text-btn" href={`/artwork/${work.id}/`}>in the archive</a>
+    </span>
+  </figcaption>
+
+  {poem && poem.body && (
+    <details class="ex-poem" id={poemId}>
+      <summary class="text-btn">
+        <span class="when-closed">read the poem</span>
+        <span class="when-open">close the poem</span>
+      </summary>
+      <div class="ex-poem-body">
+        <h3>{poem.data.title}</h3>
+        <div class="poem" set:html={poemToHtml(poem.body)} />
+        <p class="label"><a href={`/writing/${poem.id}/`}>read on its own page</a></p>
+      </div>
+    </details>
+  )}
+</figure>
+
+<style>
+  .ex-work {
+    margin: 0;
+    display: grid;
+    gap: 0.9rem;
+    padding-block: clamp(2rem, 8vh, 6rem);
+  }
+  .ex-plate { display: flex; justify-content: center; }
+  .ex-enlarge { display: block; cursor: zoom-in; }
+  .ex-plate :global(picture) { display: contents; }
+  .ex-plate :global(img) {
+    width: auto;
+    max-width: 100%;
+    max-height: 82svh;
+    object-fit: contain;
+    margin-inline: auto;
+    background: transparent;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .ex-enlarge :global(img) { transition: opacity 400ms var(--ease); }
+    .ex-enlarge:hover :global(img) { opacity: 0.93; }
+  }
+  .ex-caption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1.25rem;
+    max-width: 66rem;
+    width: 100%;
+    margin-inline: auto;
+  }
+  .ex-label { font-size: 1.25rem; }
+  .ex-label.untitled {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+  }
+  .ex-actions { margin-left: auto; display: flex; gap: 1.25rem; }
+
+  .ex-poem {
+    max-width: 66rem;
+    width: 100%;
+    margin-inline: auto;
+    border-top: 1px solid var(--rule);
+  }
+  .ex-poem summary { list-style: none; display: inline-block; color: var(--oxide); }
+  .ex-poem summary::-webkit-details-marker { display: none; }
+  .when-open { display: none; }
+  .ex-poem[open] .when-open { display: inline; }
+  .ex-poem[open] .when-closed { display: none; }
+  .ex-poem-body { padding: 1.5rem 0 1rem; max-width: 34rem; }
+  .ex-poem-body > .label { margin-top: 1.75rem; }
+  .ex-poem-body h3 { font-size: 1.5rem; font-style: italic; margin-bottom: 1.25rem; }
+
+  /* Wide screens: the poem opens beside the painting, not over it. */
+  @media (min-width: 64em) {
+    .ex-work.has-poem:has(.ex-poem[open]) {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+    .ex-work.has-poem:has(.ex-poem[open]) .ex-caption { grid-column: 1; grid-row: 2; }
+    .ex-work.has-poem:has(.ex-poem[open]) .ex-poem { grid-column: 2; grid-row: 1 / span 2; border-top: 0; align-self: center; }
+    .ex-work.has-poem:has(.ex-poem[open]) .ex-poem summary { order: 2; }
+  }
+  @media (max-width: 47.99em) {
+    .ex-work { padding-block: 2.5rem; }
+    .ex-plate { margin-inline: calc(var(--gutter) * -1); }
+    .ex-actions { margin-left: 0; width: 100%; }
+  }
+</style>

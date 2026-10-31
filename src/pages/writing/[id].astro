@@ -2,23 +2,26 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArtworkImage from '../../components/ArtworkImage.astro';
 import EditorialNote from '../../components/EditorialNote.astro';
-import { getWriting, writingKinds, type Writing } from '../../lib/content';
+import { getWriting, writingKinds, poemToHtml, type Writing } from '../../lib/content';
 import { render } from 'astro:content';
 
 export async function getStaticPaths() {
   const all = await getWriting();
-  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry, all } }));
 }
-interface Props { entry: Writing }
-const { entry } = Astro.props;
+interface Props { entry: Writing; all: Writing[] }
+const { entry, all } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 const hasBody = Boolean(entry.body?.trim());
+const isPoem = d.kind === 'poetry';
+const book = d.book ? all.find((w) => w.id === d.book) : undefined;
+const contents = d.kind === 'book' ? all.filter((w) => w.data.book === entry.id) : [];
 const facts = [
   ['year', d.year],
   ['publisher', d.publisher],
 ].filter(([, v]) => Boolean(v)) as [string, string][];
-const kindLabel = d.kind === 'book' ? 'book' : writingKinds[d.kind];
+const kindLabel = d.kind === 'book' ? 'book' : d.kind === 'poetry' ? 'poem' : writingKinds[d.kind];
 const description = d.description ?? `${d.title} — ${kindLabel} by giles c mccrary iii.`;
 ---
 <BaseLayout title={d.title} description={description} image={d.cover} imageAlt={d.coverAlt} type="article">
@@ -27,6 +30,7 @@ const description = d.description ?? `${d.title} — ${kindLabel} by giles c mcc
       <a class="label" href="/writing/">writing · {kindLabel}</a>
       <h1>{d.title}</h1>
       {d.subtitle && <p class="subtitle">{d.subtitle}</p>}
+      {book && <p class="from">from <a href={`/writing/${book.id}/`}><em>{book.data.title}</em></a></p>}
       <p class="label by">giles c mccrary iii</p>
     </header>
 
@@ -46,10 +50,22 @@ const description = d.description ?? `${d.title} — ${kindLabel} by giles c mcc
           </dl>
         )}
 
-        {hasBody && (
-          <div class:list={['prose', { verse: d.kind === 'poetry' }]}>
-            <Content />
-          </div>
+        {d.audio && (
+          <figure class="reading">
+            <figcaption class="label">a reading, by the author</figcaption>
+            <audio controls preload="none" src={d.audio}></audio>
+          </figure>
+        )}
+
+        {hasBody && (isPoem
+          ? <div class="poem reading-text" set:html={poemToHtml(entry.body!)} />
+          : <div class="prose reading-text"><Content /></div>)}
+
+        {contents.length > 0 && (
+          <section class="contents" aria-labelledby="contents-h">
+            <h2 id="contents-h" class="label">from this book, on this site</h2>
+            <ul>{contents.map((c) => <li><a href={`/writing/${c.id}/`}>{c.data.title}</a></li>)}</ul>
+          </section>
         )}
 
         {d.links.length > 0 && (
@@ -58,7 +74,7 @@ const description = d.description ?? `${d.title} — ${kindLabel} by giles c mcc
           </ul>
         )}
 
-        {(!d.description && !hasBody) && (
+        {(!d.description && !hasBody && contents.length === 0) && (
           <EditorialNote>
             Nothing has been written here yet, by design: no description, excerpt,
             publication details, or links are published until the author supplies them.
@@ -73,16 +89,23 @@ const description = d.description ?? `${d.title} — ${kindLabel} by giles c mcc
 <style>
   .page-head .label { text-decoration: none; }
   .page-head h1 { max-width: 18ch; }
-  .subtitle { font-style: italic; font-size: 1.375rem; margin: 1rem 0 0; color: var(--ink-soft); }
+  .subtitle { font-style: italic; font-size: 1.5rem; margin: 1rem 0 0; color: var(--ink-soft); }
+  .from { margin: 1rem 0 0; color: var(--ink-soft); font-size: 1.25rem; }
   .by { margin: 1.5rem 0 0; }
   .layout { display: grid; gap: var(--space-3) var(--gutter); }
   @media (min-width: 48em) {
     .layout:has(.cover) { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
   }
+  .text { max-width: 38rem; }
   .cover { max-width: 24rem; }
-  .lede { font-size: 1.3rem; line-height: 1.5; max-width: var(--measure); }
-  .facts { margin: 0 0 2rem; max-width: var(--measure); display: grid; gap: 0.5rem; }
+  .lede { font-size: 1.5rem; line-height: 1.4; }
+  .facts { margin: 0 0 2rem; display: grid; gap: 0.5rem; }
   .facts div { display: grid; grid-template-columns: 8rem 1fr; gap: 1rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.5rem; }
   .facts dd { margin: 0; }
+  .reading { margin: 0 0 2rem; }
+  .reading audio { width: 100%; margin-top: 0.5rem; }
+  .reading-text { margin-top: 1rem; }
+  .contents { margin-top: var(--space-3); }
+  .contents ul { list-style: none; padding: 0; margin: 0.75rem 0 0; font-size: 1.375rem; display: grid; gap: 0.35rem; }
   .links { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 0.5rem; font-family: var(--sans); font-size: 0.9375rem; }
 </style>

@@ -1,41 +1,56 @@
 # Design and editorial rules
 
 ## Identity
-- Central concept: **abstractly concrete**. Secondary line: *the art of unthinking.*
-- The byline is always lowercase: **giles c mccrary iii**.
-- Both strings live in `src/data/site.json` and are used everywhere from there.
+- Central concept: **abstractly concrete.** Secondary line: *the art of unthinking.*
+- Opening statement: “Some ideas need to be dismantled before they can be understood.”
+- Byline, always lowercase: **giles c mccrary iii**.
+- All of these live in `src/data/site.json` (editable under *settings*).
 
-## Look
-- Gallery ivory (`#f5f1e8`) and dark ink (`#161513`). Grey is used only for labels, and
-  there are no accent colours. The paintings supply the colour.
-- Type: Newsreader (a text serif with optical sizes) for reading and display. Inter Tight,
-  small and lowercase, for gallery-style labels. Both are self-hosted, so the site makes
-  no font requests to third parties.
-- Negative space: wide gutters, large vertical rhythm, and an irregular two-column gallery
-  so the selected works are hung rather than tiled.
+## Palette and type
+| token | value | use |
+|---|---|---|
+| ivory | `#F3F0E8` | background |
+| ink | `#18191B` | text (16:1 contrast) |
+| slate | `#53616D` | labels, secondary text (5.6:1) |
+| oxide | `#982E37` | sparingly: movement numerals, current place, focus rings (6.6:1) |
+
+Cormorant Garamond for editorial headings, reading and poems; Inter for the interface.
+Both are self-hosted, so the site makes no font requests to third parties.
+
+## The exhibition
+- Five movements plus a prologue, each an ordered list of paintings, interludes, and
+  placeholders, stored in `src/content/exhibition/`.
+- Visitors stay in control. Ordinary scrolling only: no auto-scrolling, autoplay, or audio.
+  Any movement can be reached directly from the index, the guide, or the previous/next links.
+- The **guide** (numerals at the right edge on desktop; a slim bar on phones) shows where
+  you are and can be hidden. Hiding it is remembered on that device.
+- **Enlargement** opens the original file in a full-screen ivory view (native `<dialog>`:
+  Escape closes it and focus returns where it was). Nothing is ever laid over the image.
+- **Poem reveal** is a native disclosure (`<details>`) that works without JavaScript. On wide
+  screens the poem opens beside the painting, on phones beneath it.
+- No curatorial explanation of what any painting means.
+
+## abstract your own concrete.
+A space where visitors name something concrete and dismantle it themselves (loosen,
+scatter, unweight, erase, drag, turn), then optionally save the result as an image. Every
+change is a visitor action. It works fully by keyboard, announces changes to screen
+readers, and respects reduced motion. Nothing typed there is sent or stored.
 
 ## Images
-- Original files are kept unaltered in `src/assets/artwork/`. At build time Astro/sharp
-  makes resized AVIF, WebP, and JPEG copies, converting any colour profile to sRGB so
-  browsers show the colours faithfully. No filters, no AI, no retouching.
-- The homepage hero is the only crop (`object-fit: cover`, with focus point set in settings).
-  Gallery thumbnails and artwork pages always show the whole work. Each artwork page also
-  links to the untouched original file ("view full image").
-- A missing file shows an empty, labelled frame, never a substitute image.
+- Masters are kept unaltered in `src/assets/artwork/`. Web copies (AVIF/WebP/JPEG) are made
+  at build time, with colour converted to sRGB. No filters, no generative enhancement.
+- Only the homepage opening crops a painting. Everywhere else the whole work is shown.
+- Images are never laid out larger than their native pixels on detail pages or in the
+  exhibition, and the enlargement view shows the file at most at its natural size.
 
 ## Editorial safeguards in code
-- Every descriptive field is optional. Blank fields render nothing; they are never filled
-  with defaults.
-- Works without a title are labelled by catalogue number (`no. 07`), never given a title.
-- Writing pages show only the title and byline until a description, text, or links are
-  supplied.
-- Editorial notes (dashed boxes) mark what is still pending. They switch off with
-  `showEditorialNotes: false`.
+- Blank fields are never published. Untitled works are labelled by catalogue number only.
+- Interludes and the artist statement carry an approval flag. Unapproved text is shown only
+  while editorial notes are on.
+- No poem is paired with a painting unless the artist chooses it.
+- Placement in *archive & process* carries no judgement about a work's status.
 
-## Motion and accessibility
-- One effect: a slow, short fade-in as content scrolls into view, plus soft hover states.
-  These are disabled entirely under `prefers-reduced-motion`, and content is never hidden
-  when JavaScript is off.
-- Skip link, visible focus outlines, `aria-current` on navigation, labelled form fields,
-  and alt text on every image (with a factual fallback until real descriptions are written).
-- Text colours meet WCAG AA contrast on ivory.
+## Accessibility
+Semantic landmarks and headings, a skip link, visible focus (oxide), keyboard access
+throughout, alt text on every image, labelled controls, polite live regions, reduced-motion
+support, and no information conveyed only by hover or animation.

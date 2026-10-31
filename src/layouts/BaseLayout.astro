@@ -1,9 +1,12 @@
 ---
 import '../styles/global.css';
 import Seo from '../components/Seo.astro';
+import Lightbox from '../components/Lightbox.astro';
 import site from '../data/site.json';
 
 interface Props {
+  /** Extra class on <body class={bodyClass}>, e.g. for the exhibition's fixed guide. */
+  bodyClass?: string;
   title?: string;
   description?: string;
   image?: string;
@@ -13,17 +16,17 @@ interface Props {
   noindex?: boolean;
 }
 
-const props = Astro.props;
+const { bodyClass, ...props } = Astro.props;
 const path = Astro.url.pathname;
 
 const nav = [
-  { href: '/', label: 'home' },
+  { href: '/exhibition/', label: 'exhibition' },
   { href: '/artwork/', label: 'artwork' },
   { href: '/writing/', label: 'writing' },
   { href: '/about/', label: 'about' },
   { href: '/contact/', label: 'contact' },
 ];
-const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const isCurrent = (href: string) => path.startsWith(href);
 const analytics = site.analytics;
 const year = new Date().getFullYear();
 ---
@@ -42,7 +45,7 @@ const year = new Date().getFullYear();
       <script is:inline defer data-domain={analytics.domain} src={analytics.scriptSrc}></script>
     )}
   </head>
-  <body>
+  <body class={bodyClass}>
     <a class="skip-link" href="#main">skip to content</a>
 
     <header class="site-header wrap">
@@ -62,6 +65,8 @@ const year = new Date().getFullYear();
       <slot />
     </main>
 
+    <Lightbox />
+
     <footer class="site-footer wrap">
       <hr class="rule" />
       <div class="footer-inner">
@@ -70,6 +75,9 @@ const year = new Date().getFullYear();
           <span class="concept">{site.concept}</span>
         </p>
         <ul class="label footer-links">
+          <li><a href="/exhibition/">exhibition</a></li>
+          <li><a href="/abstract/">abstract your own</a></li>
+          <li><a href="/writing/">writing</a></li>
           <li><a href="/contact/">contact</a></li>
           <li><a href="/privacy/">privacy</a></li>
           <li><span>© {year} {site.byline}</span></li>
@@ -95,7 +103,8 @@ const year = new Date().getFullYear();
   }
   .wordmark {
     font-family: var(--serif);
-    font-size: 1.125rem;
+    font-size: 1.375rem;
+    font-weight: 500;
     letter-spacing: 0.01em;
     text-decoration: none;
   }
@@ -109,17 +118,22 @@ const year = new Date().getFullYear();
   }
   nav a {
     font-family: var(--sans);
-    font-size: 0.875rem;
-    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     text-decoration: none;
-    color: var(--muted);
+    color: var(--slate);
     padding-block: 0.4rem;
     display: inline-block;
     border-bottom: 1px solid transparent;
     transition: color 200ms var(--ease), border-color 200ms var(--ease);
   }
   nav a:hover { color: var(--ink); }
-  nav a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--ink); }
+  @media (max-width: 30em) {
+    nav ul { gap: 0.25rem 0.85rem; }
+    nav a { letter-spacing: 0.07em; font-size: 0.6875rem; }
+  }
+  nav a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--oxide); }
 
   main:focus { outline: none; }
 
@@ -133,7 +147,7 @@ const year = new Date().getFullYear();
     padding-top: 1.5rem;
   }
   .footer-id { margin: 0; display: flex; gap: 0.25rem 1.25rem; flex-wrap: wrap; }
-  .footer-id .concept { font-style: italic; color: var(--muted); }
+  .footer-id .concept { font-style: italic; color: var(--slate); }
   .footer-links {
     list-style: none;
     margin: 0;

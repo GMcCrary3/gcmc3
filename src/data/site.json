@@ -3,12 +3,40 @@
   "byline": "giles c mccrary iii",
   "concept": "abstractly concrete",
   "secondaryLine": "the art of unthinking.",
-  "description": "abstractly concrete \u2014 the art of unthinking. Visual art and writing by giles c mccrary iii.",
+  "openingStatement": "Some ideas need to be dismantled before they can be understood.",
+  "enterLabel": "Enter the exhibition",
+  "exploreLabel": "Explore the artwork",
+  "description": "abstractly concrete. the art of unthinking. An interactive exhibition of paintings and writing by giles c mccrary iii.",
   "contactEmail": "",
   "showEditorialNotes": true,
+  "showAvailability": false,
   "hero": {
     "artwork": "work-01",
     "focus": "45% 50%"
+  },
+  "gallery": {
+    "selected": [
+      "work-01",
+      "work-07",
+      "work-08",
+      "work-05",
+      "work-06",
+      "work-03"
+    ],
+    "archive": [
+      "work-09",
+      "work-04",
+      "work-02",
+      "work-10"
+    ],
+    "archiveTitle": "archive & process"
+  },
+  "abstractRoom": {
+    "title": "abstract your own concrete.",
+    "prompt": "Name something concrete.",
+    "hint": "A word, an object, a certainty — anything you hold as fixed.",
+    "begin": "begin",
+    "empty": "nothing remains."
   },
   "contactForm": {
     "enabled": true,

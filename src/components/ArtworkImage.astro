@@ -45,7 +45,19 @@ const fileName = src?.split('/').pop();
 // A file smaller than the smallest requested size is served at its natural
 // size (no srcset), so pages that size images by content never upscale it.
 const small = image ? image.width <= widths[0] : false;
-const sizing = small ? { width: image!.width, height: image!.height } : { widths: [...new Set(usableWidths)], sizes };
+// Cap every `sizes` length at the file's native width: browsers then never
+// lay the image out larger than its real pixels (except the cropped hero).
+const capSizes = (list: string, max: number) =>
+  list
+    .split(/,(?![^(]*\))/)
+    .map((entry) => {
+      const t = entry.trim();
+      const m = t.match(/^(.*?)(\S+)$/);
+      return m ? `${m[1]}min(${m[2]}, ${max}px)` : t;
+    })
+    .join(', ');
+const finalSizes = image && !crop ? capSizes(sizes, image.width) : sizes;
+const sizing = small ? { width: image!.width, height: image!.height } : { widths: [...new Set(usableWidths)], sizes: finalSizes };
 ---
 {image ? (
   <Picture

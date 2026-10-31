@@ -18,19 +18,73 @@ backend:
 # then open http://localhost:4321/admin/
 local_backend: true
 
-# Optional review step: changes are saved as drafts and published when approved.
+# Changes are saved as drafts and published when approved.
 publish_mode: editorial_workflow
 
 site_url: https://gilesmccrary.com
 display_url: https://gilesmccrary.com
 logo_url: /favicon.svg
 
-# Original files are stored unaltered in the repository; the site makes
-# web-sized copies at build time.
+# Original (master) files are stored unaltered in the repository; the site
+# makes optimised web copies at build time.
 media_folder: src/assets/artwork
 public_folder: /src/assets/artwork
 
 collections:
+  # ------------------------------------------------------------------
+  - name: exhibition
+    label: exhibition
+    label_singular: movement
+    description: "The five movements. Reorder works, add interludes, and pair poems with paintings here."
+    folder: src/content/exhibition
+    create: false
+    delete: false
+    slug: "{{order}}-{{slug}}"
+    summary: "{{numeral}} · {{title}}"
+    sortable_fields: [order]
+    fields:
+      - { label: "numeral", name: numeral, widget: string, hint: "I, II, III … (the prologue uses 0)" }
+      - { label: "movement name", name: title, widget: string, hint: "A navigation label — not a title for any painting." }
+      - { label: "order", name: order, widget: number, value_type: int }
+      - label: "sequence"
+        name: items
+        widget: list
+        required: false
+        hint: "Drag to reorder. Visitors move through these in this order."
+        types:
+          - label: "painting"
+            name: artwork
+            widget: object
+            summary: "{{fields.work}} {{fields.poem}}"
+            fields:
+              - { label: "painting", name: work, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: ["no. {{ref}} {{title}}"] }
+              - label: "poem visitors may reveal (optional)"
+                name: poem
+                widget: relation
+                collection: writing
+                value_field: "{{slug}}"
+                search_fields: [title]
+                display_fields: [title]
+                required: false
+                filters:
+                  - { field: kind, values: [poetry, prose] }
+          - label: "interlude (text between works)"
+            name: interlude
+            widget: object
+            summary: "{{fields.label}} {{fields.text}}"
+            fields:
+              - { label: "small label (optional)", name: label, widget: string, required: false, hint: "e.g. interlude 01" }
+              - { label: "text", name: text, widget: text, required: false }
+              - { label: "source / note to editors", name: source, widget: string, required: false, hint: "Not shown to visitors." }
+              - { label: "approved by the artist", name: approved, widget: boolean, default: false, hint: "Interludes stay hidden from visitors until this is on." }
+          - label: "poem pairing placeholder"
+            name: poem-slot
+            widget: object
+            fields:
+              - { label: "note to editors", name: note, widget: string, required: false }
+      - { label: "text (used for the closing words of the last movement)", name: body, widget: markdown, required: false }
+
+  # ------------------------------------------------------------------
   - name: artwork
     label: artwork
     label_singular: work
@@ -38,30 +92,40 @@ collections:
     create: true
     slug: "work-{{fields.ref}}"
     identifier_field: ref
-    summary: "{{ref}} · {{collection}} · {{title}}"
-    sortable_fields: [order, ref, title]
-    view_groups:
-      - { label: collection, field: collection }
+    summary: "no. {{ref}} {{title}}"
+    sortable_fields: [ref, title]
     fields:
-      - { label: "reference number", name: ref, widget: string, hint: "Site catalogue number, e.g. 11. Shown as “no. 11” when there is no title." }
-      - { label: "original image file", name: image, widget: image, hint: "Upload the original file (JPEG, PNG or WebP, sRGB, ideally 3000px+ on the long side). It is never cropped or filtered on its page." }
-      - { label: "image description (alt text)", name: alt, widget: text, required: false, hint: "Describe what can be seen, for visitors using screen readers. One or two plain sentences." }
-      - { label: title, name: title, widget: string, required: false, hint: "Leave blank if untitled or not yet decided — blank fields are never published." }
+      - { label: "catalogue number", name: ref, widget: string, hint: "From the artist's index, e.g. 11. Shown as “no. 11” when there is no title. To split a work later, use 10a, 10b, 10c." }
+      - { label: "original image file", name: image, widget: image, hint: "Upload the original photograph (JPEG/PNG, sRGB, ideally 2500px+). It is never cropped, filtered, or overlaid on its own page." }
+      - { label: "image description (alt text)", name: alt, widget: text, required: false, hint: "What can be seen, for visitors using screen readers." }
+      - { label: title, name: title, widget: string, required: false, hint: "Leave blank if untitled or undecided — blank fields are never published." }
       - { label: year, name: year, widget: string, required: false }
       - { label: medium, name: medium, widget: string, required: false }
       - { label: dimensions, name: dimensions, widget: string, required: false, hint: "e.g. 48 × 36 in." }
-      - { label: availability, name: availability, widget: string, required: false, hint: "Leave blank to say nothing. Anything written here is published as-is." }
-      - label: collection
-        name: collection
-        widget: select
-        default: archive
-        options:
-          - { label: "selected works", value: selected }
-          - { label: "archive & process", value: archive }
-      - { label: "order", name: order, widget: number, value_type: int, default: 100, hint: "Lower numbers appear first within the collection." }
+      - { label: "artist-approved description", name: description, widget: text, required: false }
+      - { label: availability, name: availability, widget: string, required: false, hint: "Only shown when “show availability” is on in settings." }
+      - label: "detail photographs"
+        name: details
+        widget: list
+        required: false
+        fields:
+          - { label: image, name: image, widget: image }
+          - { label: "description (alt text)", name: alt, widget: string, required: false }
+          - { label: caption, name: caption, widget: string, required: false }
+      - label: "works within this photograph"
+        name: parts
+        widget: list
+        required: false
+        hint: "For photographs that show several works together (e.g. no. 10). Keep them grouped here, or split them into their own entries."
+        fields:
+          - { label: "position or label", name: label, widget: string, required: false }
+          - { label: "separate image (optional)", name: image, widget: image, required: false }
+          - { label: "description (alt text)", name: alt, widget: string, required: false }
+          - { label: note, name: note, widget: string, required: false }
       - { label: "hide (draft)", name: draft, widget: boolean, default: false, required: false }
-      - { label: "interpretation or note", name: body, widget: markdown, required: false, buttons: [bold, italic, link, quote] }
+      - { label: "interpretation or note (optional)", name: body, widget: markdown, required: false, buttons: [bold, italic, link, quote] }
 
+  # ------------------------------------------------------------------
   - name: writing
     label: writing
     label_singular: writing
@@ -80,31 +144,38 @@ collections:
         widget: select
         options:
           - { label: book, value: book }
-          - { label: poetry, value: poetry }
-          - { label: prose, value: prose }
+          - { label: poem, value: poetry }
+          - { label: "prose / essay", value: prose }
           - { label: "publication (elsewhere)", value: publication }
       - { label: subtitle, name: subtitle, widget: string, required: false }
+      - { label: "from the book (for poems and excerpts)", name: book, widget: relation, collection: writing, value_field: "{{slug}}", search_fields: [title], display_fields: [title], required: false, filters: [{ field: kind, values: [book] }] }
       - { label: year, name: year, widget: string, required: false }
       - { label: publisher, name: publisher, widget: string, required: false }
       - { label: "short description", name: description, widget: text, required: false }
       - { label: "cover image", name: cover, widget: image, required: false }
       - { label: "cover description (alt text)", name: coverAlt, widget: string, required: false }
+      - { label: "recorded reading (optional, never autoplays)", name: audio, widget: file, required: false, media_folder: /public/audio, public_folder: /audio }
       - label: links
         name: links
         widget: list
         required: false
-        hint: "Where to read or buy, e.g. a bookshop or publisher page."
+        hint: "Published editions: a bookshop or publisher page."
         fields:
           - { label: label, name: label, widget: string }
           - { label: url, name: url, widget: string }
       - { label: order, name: order, widget: number, value_type: int, default: 100 }
       - { label: "hide (draft)", name: draft, widget: boolean, default: false, required: false }
-      - { label: "text (poems keep their line breaks)", name: body, widget: markdown, required: false }
+      - label: "text"
+        name: body
+        widget: text
+        required: false
+        hint: "For poems, paste exactly. Every line break, blank line between stanzas, indent, and punctuation is kept. *Asterisks* make italics. For prose, Markdown is supported."
 
+  # ------------------------------------------------------------------
   - name: pages
     label: site copy
     files:
-      - label: homepage copy
+      - label: homepage copy (optional further introduction)
         name: home
         file: src/content/pages/home.md
         fields: &copyfields
@@ -118,8 +189,24 @@ collections:
       - label: about
         name: about
         file: src/content/pages/about.md
-        fields: *copyfields
+        fields:
+          - { label: title, name: title, widget: hidden }
+          - { label: "approved", name: approved, widget: boolean, default: false, required: false }
+          - { label: "biography", name: body, widget: markdown, required: false }
+          - { label: portrait, name: portrait, widget: image, required: false, media_folder: /src/assets/site, public_folder: /src/assets/site }
+          - { label: "portrait description (alt text)", name: portraitAlt, widget: string, required: false }
+          - label: publications
+            name: publications
+            widget: list
+            required: false
+            fields: &linkfields
+              - { label: text, name: text, widget: string }
+              - { label: "link (optional)", name: url, widget: string, required: false }
+          - { label: exhibitions, name: exhibitions, widget: list, required: false, fields: *linkfields }
+          - { label: press, name: press, widget: list, required: false, fields: *linkfields }
+          - { label: "professional contact details", name: professionalContact, widget: text, required: false }
 
+  # ------------------------------------------------------------------
   - name: settings
     label: settings
     files:
@@ -132,15 +219,42 @@ collections:
           - { label: byline, name: byline, widget: string }
           - { label: concept, name: concept, widget: string }
           - { label: "secondary line", name: secondaryLine, widget: string }
+          - { label: "opening statement", name: openingStatement, widget: text }
+          - { label: "primary button", name: enterLabel, widget: string }
+          - { label: "secondary button", name: exploreLabel, widget: string }
           - { label: "search & sharing description", name: description, widget: text }
           - { label: "public contact email (optional)", name: contactEmail, widget: string, required: false }
           - { label: "show editorial notes (turn off at launch)", name: showEditorialNotes, widget: boolean }
+          - { label: "show availability on artwork pages", name: showAvailability, widget: boolean }
           - label: hero
             name: hero
             widget: object
             fields:
-              - { label: "artwork entry", name: artwork, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: [ref, title] }
-              - { label: "crop focus (x% y%)", name: focus, widget: string, hint: "Which part of the painting stays visible when the hero is cropped, e.g. 50% 45%." }
+              - { label: "artwork", name: artwork, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: ["no. {{ref}} {{title}}"] }
+              - { label: "crop focus (x% y%)", name: focus, widget: string, hint: "Which part of the painting stays visible in the homepage crop, e.g. 45% 50%." }
+          - label: gallery
+            name: gallery
+            widget: object
+            hint: "Order of the artwork page. Placement carries no judgement about a work's status."
+            fields:
+              - label: "selected works (drag to reorder)"
+                name: selected
+                widget: list
+                field: { label: work, name: work, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: ["no. {{ref}} {{title}}"] }
+              - label: "second section (drag to reorder)"
+                name: archive
+                widget: list
+                field: { label: work, name: work, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: ["no. {{ref}} {{title}}"] }
+              - { label: "second section heading", name: archiveTitle, widget: string }
+          - label: "abstract your own concrete (visitor space)"
+            name: abstractRoom
+            widget: object
+            fields:
+              - { label: "page title", name: title, widget: string }
+              - { label: prompt, name: prompt, widget: string }
+              - { label: hint, name: hint, widget: string }
+              - { label: "button", name: begin, widget: string }
+              - { label: "when every letter is erased", name: empty, widget: string }
           - label: contact form
             name: contactForm
             widget: object

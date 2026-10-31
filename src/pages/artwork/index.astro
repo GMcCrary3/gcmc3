@@ -2,20 +2,33 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import EditorialNote from '../../components/EditorialNote.astro';
-import { getArtworks } from '../../lib/content';
+import { getArtworks, getMovements } from '../../lib/content';
+import site from '../../data/site.json';
 
-const selected = await getArtworks('selected');
-const archive = await getArtworks('archive');
+const all = await getArtworks();
+const byId = new Map(all.map((w) => [w.id, w]));
+const pick = (ids: string[]) => ids.map((id) => byId.get(id)).filter((w) => w !== undefined);
+const selected = pick(site.gallery.selected);
+const placed = new Set([...site.gallery.selected, ...site.gallery.archive]);
+// Archive in the order set in settings; any newly added work not yet placed follows, in catalogue order.
+const archive = [...pick(site.gallery.archive), ...all.filter((w) => !placed.has(w.id))];
+
+const { movements } = await getMovements();
+const movementOf = new Map<string, string>();
+for (const m of movements) {
+  for (const i of m.data.items) if (i.type === 'artwork') movementOf.set(i.work, `${m.data.numeral} · ${m.data.title}`);
+}
 ---
 <BaseLayout
   title="artwork"
-  description="Selected works and an archive of process by giles c mccrary iii."
+  description="Selected works and the archive of giles c mccrary iii."
   image={selected[0]?.data.image}
   cropImage
 >
   <header class="page-head wrap">
     <span class="label">artwork</span>
     <h1>selected works</h1>
+    <p class="intro">To see the works in sequence, with writing, <a href="/exhibition/">enter the exhibition</a>.</p>
   </header>
 
   <section class="wrap" aria-label="Selected works">
@@ -24,6 +37,7 @@ const archive = await getArtworks('archive');
         <WorkCard
           work={w}
           eager={i === 0}
+          movement={movementOf.get(w.id)}
           sizes={i % 6 === 0 ? '(min-width: 48em) 64vw, 100vw' : '(min-width: 48em) 42vw, 100vw'}
         />
       ))}
@@ -33,15 +47,15 @@ const archive = await getArtworks('archive');
   {archive.length > 0 && (
     <section class="archive wrap" aria-labelledby="archive-h">
       <div class="archive-head">
-        <h2 id="archive-h">archive &amp; process</h2>
+        <h2 id="archive-h">{site.gallery.archiveTitle}</h2>
         <EditorialNote>
-          Works here await the artist’s decision on final placement. To move one into
-          selected works, set its collection to “selected” and give it an order number.
+          Placement in selected works or {site.gallery.archiveTitle} is set under
+          settings → gallery. It carries no judgement about a work’s status.
         </EditorialNote>
       </div>
       <div class="archive-grid">
         {archive.map((w) => (
-          <WorkCard work={w} sizes="(min-width: 64em) 22vw, (min-width: 36em) 45vw, 100vw" />
+          <WorkCard work={w} movement={movementOf.get(w.id)} sizes="(min-width: 64em) 22vw, (min-width: 36em) 45vw, 100vw" />
         ))}
       </div>
     </section>
@@ -49,10 +63,8 @@ const archive = await getArtworks('archive');
 </BaseLayout>
 
 <style>
-  .gallery {
-    display: grid;
-    gap: var(--space-4);
-  }
+  .intro { margin-top: 1.5rem; max-width: 36rem; color: var(--ink-soft); }
+  .gallery { display: grid; gap: var(--space-4); }
   @media (min-width: 48em) {
     .gallery {
       grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -60,7 +72,7 @@ const archive = await getArtworks('archive');
       row-gap: var(--space-5);
       align-items: start;
     }
-    /* An irregular, editorial rhythm — every work shown whole, never cropped. */
+    /* An irregular rhythm — every work shown whole, never cropped. */
     .gallery > :global(:nth-child(6n + 1)) { grid-column: 1 / span 8; }
     .gallery > :global(:nth-child(6n + 2)) { grid-column: 9 / span 4; margin-top: var(--space-5); }
     .gallery > :global(:nth-child(6n + 3)) { grid-column: 2 / span 5; }
@@ -68,23 +80,19 @@ const archive = await getArtworks('archive');
     .gallery > :global(:nth-child(6n + 5)) { grid-column: 1 / span 6; }
     .gallery > :global(:nth-child(6n + 6)) { grid-column: 8 / span 4; margin-top: var(--space-5); }
   }
-
   .archive { padding-top: var(--space-5); }
-  .archive-head {
-    border-top: 1px solid var(--rule);
-    padding-top: 1rem;
-    margin-bottom: var(--space-3);
-  }
+  .archive-head { border-top: 1px solid var(--rule); padding-top: 1rem; margin-bottom: var(--space-3); }
   .archive-head h2 {
     font-family: var(--sans);
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     font-weight: 450;
   }
   .archive-grid {
     display: grid;
     gap: var(--space-3) var(--gutter);
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-    align-items: start;
+    align-items: end;
   }
 </style>

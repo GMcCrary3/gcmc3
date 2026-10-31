@@ -9,6 +9,7 @@ const groups = order
   .filter((g) => g.items.length > 0);
 ---
 <BaseLayout title="writing" description="Books, poetry, and prose by giles c mccrary iii.">
+  {/* Poems belonging to a book are listed under that book as well as under poetry. */}
   <header class="page-head wrap">
     <span class="label">writing</span>
     <h1>writing</h1>
@@ -37,8 +38,9 @@ const groups = order
   .group + .group { padding-top: var(--space-4); }
   h2 {
     font-family: var(--sans);
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     font-weight: 450;
     color: var(--muted);
     border-top: 1px solid var(--rule);
@@ -56,9 +58,9 @@ const groups = order
   }
   li a { text-decoration: none; display: grid; gap: 0.25rem; }
   .t {
-    font-size: clamp(1.625rem, 1.1rem + 2.2vw, 3.25rem);
-    font-weight: 300;
-    letter-spacing: -0.02em;
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.5rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
     line-height: 1.12;
   }
   .sub { font-style: italic; color: var(--ink-soft); }

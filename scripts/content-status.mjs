@@ -15,6 +15,7 @@ const fm = (file) => {
   return { data, body: (m?.[2] ?? '').trim() };
 };
 
+const site = JSON.parse(readFileSync(join(root, 'src/data/site.json'), 'utf8'));
 const assets = join(root, 'src/assets/artwork');
 const files = existsSync(assets) ? readdirSync(assets).filter((f) => !f.startsWith('.')) : [];
 const stems = new Set(files.map((f) => parse(f).name.toLowerCase()));
@@ -23,10 +24,12 @@ console.log('\nartwork');
 for (const f of readdirSync(join(root, 'src/content/artwork')).sort()) {
   const { data, body } = fm(join(root, 'src/content/artwork', f));
   const stem = parse(data.image ?? '').name.toLowerCase();
-  const missing = ['alt', 'title', 'year', 'medium', 'dimensions', 'availability'].filter((k) => !data[k]);
+  const missing = ['alt', 'title', 'year', 'medium', 'dimensions', 'description'].filter((k) => !data[k]);
   if (!body) missing.push('note');
   const img = stems.has(stem) ? 'image ✓' : `image MISSING (${data.image})`;
-  console.log(`  ${f.padEnd(14)} ${data.collection?.padEnd(9)} ${img}${missing.length ? ` · unpublished: ${missing.join(', ')}` : ''}`);
+  const id = f.replace(/\.md$/, '');
+  const place = site.gallery.selected.includes(id) ? 'selected' : site.gallery.archive.includes(id) ? 'archive' : 'UNPLACED';
+  console.log(`  ${f.padEnd(14)} ${place.padEnd(9)} ${img}${missing.length ? ` · unpublished: ${missing.join(', ')}` : ''}`);
 }
 
 console.log('\nsite copy');
@@ -42,7 +45,15 @@ for (const f of readdirSync(join(root, 'src/content/writing')).sort()) {
   console.log(`  ${f.padEnd(20)} ${body ? 'has text' : 'no text'}${empty.length ? ` · unpublished: ${empty.join(', ')}` : ''}`);
 }
 
-const site = JSON.parse(readFileSync(join(root, 'src/data/site.json'), 'utf8'));
+console.log('\nexhibition');
+for (const f of readdirSync(join(root, 'src/content/exhibition')).sort()) {
+  const text = readFileSync(join(root, 'src/content/exhibition', f), 'utf8');
+  const works = [...text.matchAll(/work: (work-\S+)/g)].map((m) => m[1].replace('work-', '')).join(' → ');
+  const poems = [...text.matchAll(/poem: "?([^"\n]+)"?/g)].filter((m) => m[1].trim()).length;
+  const pending = [...text.matchAll(/approved: false/g)].length;
+  console.log(`  ${f.padEnd(28)} ${works || '(text only)'}${poems ? ` · ${poems} poem(s) paired` : ''}${pending ? ` · ${pending} interlude(s) awaiting approval` : ''}`);
+}
+
 console.log('\nsettings');
 console.log(`  editorial notes visible: ${site.showEditorialNotes} ${site.showEditorialNotes ? '(turn off before launch)' : ''}`);
 console.log(`  analytics approved:      ${site.analytics.approvedByArtist}`);
