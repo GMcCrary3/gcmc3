@@ -1,0 +1,96 @@
+---
+/**
+ * Renders an original artwork file as responsive, optimised images
+ * (AVIF → WebP → JPEG fallback). The full composition is always shown
+ * unless `crop` is set (used only for the homepage hero).
+ * If the original file has not been added yet, a neutral, clearly labelled
+ * empty frame is shown instead — no artwork is ever simulated.
+ */
+import { Picture } from 'astro:assets';
+import { resolveImage } from '../lib/images';
+import site from '../data/site.json';
+
+interface Props {
+  src: string | undefined;
+  alt: string;
+  sizes: string;
+  widths?: number[];
+  crop?: boolean;
+  focus?: string;
+  eager?: boolean;
+  class?: string;
+  quality?: number;
+  placeholderLabel?: string;
+}
+
+const {
+  src,
+  alt,
+  sizes,
+  widths = [480, 720, 960, 1280, 1600, 2000],
+  crop = false,
+  focus = '50% 50%',
+  eager = false,
+  class: className,
+  quality = 82,
+  placeholderLabel,
+} = Astro.props;
+
+const image = resolveImage(src);
+const usableWidths = image ? widths.filter((w) => w <= image.width) : [];
+if (image && (usableWidths.length === 0 || usableWidths[usableWidths.length - 1] < image.width)) {
+  usableWidths.push(Math.min(image.width, widths[widths.length - 1]));
+}
+const fileName = src?.split('/').pop();
+---
+{image ? (
+  <Picture
+    src={image}
+    alt={alt}
+    widths={[...new Set(usableWidths)]}
+    sizes={sizes}
+    formats={['avif', 'webp']}
+    fallbackFormat="jpg"
+    quality={quality}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding={eager ? 'sync' : 'async'}
+    fetchpriority={eager ? 'high' : 'auto'}
+    class:list={['art-img', { crop }, className]}
+    style={crop ? `object-position: ${focus}` : undefined}
+  />
+) : (
+  <div
+    class:list={['art-missing', { crop }, className]}
+    role="img"
+    aria-label={`${alt} (image file not yet added)`}
+  >
+    {site.showEditorialNotes && (
+      <span>
+        {placeholderLabel ?? 'original file pending'}
+        {fileName && <><br /><code>src/assets/artwork/{fileName}</code></>}
+      </span>
+    )}
+  </div>
+)}
+
+<style>
+  :global(.art-img) { width: 100%; height: auto; background: var(--ivory-deep); }
+  :global(.art-img.crop) { height: 100%; object-fit: cover; }
+  .art-missing {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background: var(--ivory-deep);
+    outline: 1px solid var(--rule);
+    outline-offset: -1px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 1rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .art-missing.crop { aspect-ratio: auto; height: 100%; }
+  .art-missing code { font-size: 0.6875rem; letter-spacing: 0; }
+</style>

@@ -1,0 +1,23 @@
+{
+  "siteName": "GilesMcCrary.com",
+  "byline": "giles c mccrary iii",
+  "concept": "abstractly concrete",
+  "secondaryLine": "the art of unthinking.",
+  "description": "abstractly concrete — the art of unthinking. Visual art and writing by giles c mccrary iii.",
+  "contactEmail": "",
+  "showEditorialNotes": true,
+  "hero": {
+    "artwork": "work-01",
+    "focus": "50% 45%"
+  },
+  "contactForm": {
+    "enabled": true,
+    "recaptcha": false
+  },
+  "analytics": {
+    "approvedByArtist": false,
+    "provider": "plausible",
+    "domain": "gilesmccrary.com",
+    "scriptSrc": "https://plausible.io/js/script.js"
+  }
+}

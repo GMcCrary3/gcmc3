@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArtworkImage from '../../components/ArtworkImage.astro';
+import EditorialNote from '../../components/EditorialNote.astro';
+import { getWriting, writingKinds, type Writing } from '../../lib/content';
+import { render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const all = await getWriting();
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+interface Props { entry: Writing }
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const hasBody = Boolean(entry.body?.trim());
+const facts = [
+  ['year', d.year],
+  ['publisher', d.publisher],
+].filter(([, v]) => Boolean(v)) as [string, string][];
+const kindLabel = d.kind === 'book' ? 'book' : writingKinds[d.kind];
+const description = d.description ?? `${d.title} — ${kindLabel} by giles c mccrary iii.`;
+---
+<BaseLayout title={d.title} description={description} image={d.cover} imageAlt={d.coverAlt} type="article">
+  <article class="wrap entry">
+    <header class="page-head">
+      <a class="label" href="/writing/">writing · {kindLabel}</a>
+      <h1>{d.title}</h1>
+      {d.subtitle && <p class="subtitle">{d.subtitle}</p>}
+      <p class="label by">giles c mccrary iii</p>
+    </header>
+
+    <div class="layout">
+      {d.cover && (
+        <div class="cover">
+          <ArtworkImage src={d.cover} alt={d.coverAlt ?? `Cover of ${d.title}`} sizes="(min-width: 48em) 30vw, 80vw" widths={[400, 640, 960]} />
+        </div>
+      )}
+
+      <div class="text">
+        {d.description && <p class="lede">{d.description}</p>}
+
+        {facts.length > 0 && (
+          <dl class="facts">
+            {facts.map(([k, v]) => (<div><dt class="label">{k}</dt><dd>{v}</dd></div>))}
+          </dl>
+        )}
+
+        {hasBody && (
+          <div class:list={['prose', { verse: d.kind === 'poetry' }]}>
+            <Content />
+          </div>
+        )}
+
+        {d.links.length > 0 && (
+          <ul class="links">
+            {d.links.map((l) => (<li><a href={l.url} rel="noopener">{l.label}</a></li>))}
+          </ul>
+        )}
+
+        {(!d.description && !hasBody) && (
+          <EditorialNote>
+            Nothing has been written here yet, by design: no description, excerpt,
+            publication details, or links are published until the author supplies them.
+            Edit <code>src/content/writing/{entry.id}.md</code> or use the editor.
+          </EditorialNote>
+        )}
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .page-head .label { text-decoration: none; }
+  .page-head h1 { max-width: 18ch; }
+  .subtitle { font-style: italic; font-size: 1.375rem; margin: 1rem 0 0; color: var(--ink-soft); }
+  .by { margin: 1.5rem 0 0; }
+  .layout { display: grid; gap: var(--space-3) var(--gutter); }
+  @media (min-width: 48em) {
+    .layout:has(.cover) { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+  }
+  .cover { max-width: 24rem; }
+  .lede { font-size: 1.3rem; line-height: 1.5; max-width: var(--measure); }
+  .facts { margin: 0 0 2rem; max-width: var(--measure); display: grid; gap: 0.5rem; }
+  .facts div { display: grid; grid-template-columns: 8rem 1fr; gap: 1rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.5rem; }
+  .facts dd { margin: 0; }
+  .links { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 0.5rem; font-family: var(--sans); font-size: 0.9375rem; }
+</style>

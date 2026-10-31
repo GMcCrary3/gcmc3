@@ -1,0 +1,181 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArtworkImage from '../components/ArtworkImage.astro';
+import WorkCard from '../components/WorkCard.astro';
+import EditorialNote from '../components/EditorialNote.astro';
+import { getArtworks, getWriting, getPage, artworkAlt } from '../lib/content';
+import { render } from 'astro:content';
+import site from '../data/site.json';
+
+const selected = await getArtworks('selected');
+const heroWork = selected.find((w) => w.id === site.hero.artwork) ?? selected[0];
+const preview = selected.filter((w) => w.id !== heroWork?.id).slice(0, 4);
+const books = (await getWriting()).filter((w) => w.data.kind === 'book');
+const home = await getPage('home');
+const { Content: HomeCopy } = home ? await render(home) : { Content: null };
+const hasHomeCopy = Boolean(home?.body?.trim());
+---
+<BaseLayout image={heroWork?.data.image} imageAlt={heroWork ? artworkAlt(heroWork) : undefined} cropImage>
+  <section class="hero wrap" aria-labelledby="concept">
+    <div class="hero-text">
+      <h1 id="concept">{site.concept}</h1>
+      <p class="secondary">{site.secondaryLine}</p>
+      <p class="label byline">{site.byline}</p>
+    </div>
+    {heroWork && (
+      <a class="hero-art" href={`/artwork/${heroWork.id}/`} aria-label="View the full work">
+        <ArtworkImage
+          src={heroWork.data.image}
+          alt={artworkAlt(heroWork)}
+          sizes="(min-width: 60em) 62vw, 100vw"
+          widths={[640, 960, 1280, 1600, 2000, 2400]}
+          crop
+          focus={site.hero.focus}
+          eager
+          quality={85}
+        />
+      </a>
+    )}
+  </section>
+
+  <section class="intro wrap" aria-label="Introduction">
+    <div class="prose" data-reveal>
+      {hasHomeCopy && HomeCopy ? <HomeCopy /> : (
+        <EditorialNote>
+          Approved homepage copy goes in <code>src/content/pages/home.md</code> (or
+          <em>site copy → homepage copy</em> in the editor). Paste it exactly as approved;
+          wording and capitalisation are preserved.
+        </EditorialNote>
+      )}
+    </div>
+  </section>
+
+  {preview.length > 0 && (
+    <section class="selected wrap" aria-labelledby="selected-h">
+      <div class="section-head">
+        <h2 id="selected-h">selected works</h2>
+        <a class="label" href="/artwork/">all artwork</a>
+      </div>
+      <div class="selected-grid">
+        {preview.map((w) => (
+          <WorkCard work={w} sizes="(min-width: 48em) 45vw, 100vw" />
+        ))}
+      </div>
+    </section>
+  )}
+
+  {books.length > 0 && (
+    <section class="writing wrap" aria-labelledby="writing-h">
+      <div class="section-head">
+        <h2 id="writing-h">writing</h2>
+        <a class="label" href="/writing/">all writing</a>
+      </div>
+      <ul class="book-list">
+        {books.map((b) => (
+          <li data-reveal>
+            <a href={`/writing/${b.id}/`}>{b.data.title}</a>
+            {b.data.year && <span class="label">{b.data.year}</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 2rem;
+    padding-top: var(--space-3);
+  }
+  .hero-art {
+    display: block;
+    order: -1;
+    height: min(78vh, 125vw);
+    margin-inline: calc(var(--gutter) * -1);
+  }
+  .hero-art :global(picture) { display: block; height: 100%; }
+  .hero-text h1 {
+    font-size: clamp(2.75rem, 1.4rem + 6.5vw, 7.5rem);
+    font-weight: 300;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+  }
+  .secondary {
+    font-style: italic;
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    color: var(--ink-soft);
+    margin: 1rem 0 0;
+  }
+  .byline { margin-top: 2rem; margin-bottom: 0; }
+
+  @media (min-width: 60em) {
+    .hero {
+      grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
+      align-items: end;
+      gap: clamp(2rem, 4vw, 4rem);
+      padding-top: var(--space-2);
+    }
+    .hero-art {
+      order: 0;
+      height: calc(100vh - 7rem);
+      min-height: 32rem;
+      max-height: 60rem;
+      margin-inline: 0;
+    }
+    .hero-text { padding-bottom: 0.5rem; }
+  }
+
+  .intro { padding-top: var(--space-4); }
+  .intro .prose { font-size: 1.1875rem; margin-left: auto; margin-right: 0; }
+  @media (min-width: 60em) {
+    .intro .prose { margin-right: 18%; }
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+    margin-bottom: var(--space-3);
+  }
+  .section-head h2 {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    font-weight: 450;
+  }
+  .section-head a { text-decoration: none; }
+  .section-head a:hover { color: var(--ink); }
+
+  .selected { padding-top: var(--space-5); }
+  .selected-grid {
+    display: grid;
+    gap: var(--space-4) var(--gutter);
+  }
+  @media (min-width: 48em) {
+    .selected-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+    .selected-grid > :global(:nth-child(even)) { margin-top: var(--space-5); }
+  }
+
+  .writing { padding-top: var(--space-5); }
+  .book-list { list-style: none; margin: 0; padding: 0; }
+  .book-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .book-list a {
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.5rem);
+    font-weight: 300;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+  .book-list a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+</style>

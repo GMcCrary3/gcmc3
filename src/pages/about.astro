@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EditorialNote from '../components/EditorialNote.astro';
+import { getPage } from '../lib/content';
+import { render } from 'astro:content';
+import site from '../data/site.json';
+
+const statement = await getPage('statement');
+const about = await getPage('about');
+const S = statement?.body?.trim() ? (await render(statement)).Content : null;
+const A = about?.body?.trim() ? (await render(about)).Content : null;
+---
+<BaseLayout title="about" description={`About ${site.byline} — ${site.concept}.`} type="profile">
+  <header class="page-head wrap">
+    <span class="label">about</span>
+    <h1>{site.byline}</h1>
+  </header>
+
+  <div class="wrap cols">
+    <section aria-labelledby="statement-h">
+      <h2 id="statement-h" class="label">artist statement</h2>
+      <div class="prose statement" data-reveal>
+        {S ? <S /> : (
+          <EditorialNote>
+            The approved artist statement goes in <code>src/content/pages/statement.md</code>
+            (<em>site copy → artist statement</em> in the editor), exactly as written.
+          </EditorialNote>
+        )}
+      </div>
+    </section>
+
+    {(A || site.showEditorialNotes) && (
+      <section aria-labelledby="about-h">
+        <h2 id="about-h" class="label">about</h2>
+        <div class="prose" data-reveal>
+          {A ? <A /> : (
+            <EditorialNote>
+              Optional: a short biography in <code>src/content/pages/about.md</code>. Leave it
+              empty and this section is not published. No credentials, exhibitions, or
+              biography are added on the artist’s behalf.
+            </EditorialNote>
+          )}
+        </div>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .cols { display: grid; gap: var(--space-4) var(--gutter); }
+  @media (min-width: 60em) {
+    .cols { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  }
+  h2 { display: block; margin-bottom: 1.25rem; }
+  .statement { font-size: 1.25rem; line-height: 1.55; }
+</style>

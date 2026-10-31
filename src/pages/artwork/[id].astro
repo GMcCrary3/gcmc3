@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArtworkImage from '../../components/ArtworkImage.astro';
+import EditorialNote from '../../components/EditorialNote.astro';
+import { getArtworks, artworkAlt, artworkLabel, type Artwork } from '../../lib/content';
+import { originalUrl } from '../../lib/images';
+import { render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const selected = await getArtworks('selected');
+  const archive = await getArtworks('archive');
+  const lists = [selected, archive];
+  return lists.flatMap((list) =>
+    list.map((work, i) => ({
+      params: { id: work.id },
+      props: { work, prev: list[i - 1], next: list[i + 1] },
+    })),
+  );
+}
+
+interface Props { work: Artwork; prev?: Artwork; next?: Artwork }
+const { work, prev, next } = Astro.props;
+const d = work.data;
+const { Content } = await render(work);
+const hasNote = Boolean(work.body?.trim());
+const label = artworkLabel(work);
+const original = originalUrl(d.image);
+
+// Only fields that have been filled in are published.
+const details = [
+  ['year', d.year],
+  ['medium', d.medium],
+  ['dimensions', d.dimensions],
+  ['availability', d.availability],
+].filter(([, v]) => Boolean(v)) as [string, string][];
+
+const missing = ['title', 'year', 'medium', 'dimensions', 'availability'].filter(
+  (k) => !d[k as keyof typeof d],
+);
+const collectionLabel = d.collection === 'selected' ? 'selected works' : 'archive & process';
+const description = d.title
+  ? `${d.title}${d.year ? ` (${d.year})` : ''} — artwork by giles c mccrary iii.`
+  : `Artwork no. ${d.ref} by giles c mccrary iii.`;
+---
+<BaseLayout title={label} description={description} image={d.image} imageAlt={artworkAlt(work)} type="article">
+  <article class="artwork">
+    <div class="plate wrap">
+      <ArtworkImage
+        src={d.image}
+        alt={artworkAlt(work)}
+        sizes="(min-width: 64em) 70vw, 100vw"
+        widths={[640, 960, 1280, 1600, 2000, 2600]}
+        eager
+        quality={90}
+      />
+    </div>
+
+    <div class="info wrap">
+      <header>
+        <a class="label" href="/artwork/">{collectionLabel}</a>
+        <h1 class:list={{ untitled: !d.title }}>{label}</h1>
+      </header>
+
+      <div class="body">
+        {details.length > 0 && (
+          <dl class="details">
+            {details.map(([k, v]) => (
+              <div><dt class="label">{k}</dt><dd>{v}</dd></div>
+            ))}
+          </dl>
+        )}
+
+        {hasNote && <div class="prose note"><Content /></div>}
+
+        {(missing.length > 0 || !d.alt) && (
+          <EditorialNote>
+            Unpublished until supplied: {missing.join(', ')}{!d.alt && (missing.length ? '; ' : '') + 'image description (alt text)'}.
+            {!hasNote && ' An interpretation or note can be added in the body of the entry.'}
+          </EditorialNote>
+        )}
+
+        <p class="label actions">
+          {original && <a href={original}>view full image</a>}
+          {d.availability && <a href={`/contact/?about=${encodeURIComponent(label)}`}>enquire about this work</a>}
+        </p>
+      </div>
+    </div>
+
+    <nav class="pager wrap" aria-label={`More from ${collectionLabel}`}>
+      {prev ? <a rel="prev" href={`/artwork/${prev.id}/`}><span class="label">previous</span>{artworkLabel(prev)}</a> : <span />}
+      {next ? <a rel="next" class="next" href={`/artwork/${next.id}/`}><span class="label">next</span>{artworkLabel(next)}</a> : <span />}
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  .plate {
+    padding-top: var(--space-3);
+    display: flex;
+    justify-content: center;
+  }
+  /* Show the entire work: constrained by viewport height, never cropped. */
+  .plate :global(picture) { display: contents; }
+  .plate :global(img) {
+    width: auto;
+    max-width: 100%;
+    max-height: calc(100vh - 8rem);
+    object-fit: contain;
+    background: transparent;
+  }
+  .plate :global(.art-missing) { max-width: 36rem; }
+
+  .info {
+    display: grid;
+    gap: 1.5rem var(--gutter);
+    padding-top: var(--space-3);
+  }
+  @media (min-width: 48em) {
+    .info { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  }
+  .info header .label { text-decoration: none; display: block; margin-bottom: 0.75rem; }
+  .info h1 { font-size: clamp(1.75rem, 1.3rem + 2vw, 3rem); font-weight: 300; }
+  .info h1.untitled {
+    font-family: var(--sans);
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  .details { margin: 0 0 1.5rem; display: grid; gap: 0.6rem; max-width: var(--measure); }
+  .details div {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 1rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.6rem;
+  }
+  .details dd { margin: 0; }
+  .note { margin-bottom: 1.5rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+  .actions a:hover { color: var(--ink); }
+
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: var(--space-4);
+  }
+  .pager a { text-decoration: none; display: grid; gap: 0.25rem; }
+  .pager a:hover { text-decoration: underline; }
+  .pager .next { text-align: right; }
+</style>

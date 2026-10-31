@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EditorialNote from '../components/EditorialNote.astro';
+import site from '../data/site.json';
+const a = site.analytics;
+const analyticsOn = a.approvedByArtist && a.domain;
+---
+<BaseLayout title="privacy" description="How GilesMcCrary.com handles contact details and visitor data.">
+  <header class="page-head wrap">
+    <span class="label">privacy</span>
+    <h1>privacy</h1>
+  </header>
+
+  <div class="wrap prose">
+    <EditorialNote>
+      Please read and confirm this page before launch, particularly the retention period.
+      It reflects how the site is built; it is not legal advice.
+    </EditorialNote>
+
+    <h2>contact form</h2>
+    <p>
+      When you use the contact form, the site collects your name, your email address, an
+      optional subject, and your message. These are used only to read and reply to your
+      message. They are not added to a mailing list, sold, or shared with anyone else.
+    </p>
+    <p>
+      Form submissions are received and stored by the site’s host, Netlify, which also
+      screens them for spam. As part of that screening, technical details such as your IP
+      address and browser type may be processed. Messages are kept only as long as needed
+      to respond, then deleted.
+    </p>
+
+    <h2>analytics</h2>
+    {analyticsOn ? (
+      <p>
+        The site uses Plausible Analytics to count visits in aggregate (pages viewed,
+        referring sites, country, device type). It sets no cookies and collects no
+        personal information. No visitor is identified or tracked across other websites.
+      </p>
+    ) : (
+      <p>
+        The site does not currently use analytics, advertising, or tracking cookies.
+      </p>
+    )}
+
+    <h2>cookies</h2>
+    <p>The public site sets no cookies.</p>
+
+    <h2>server logs</h2>
+    <p>
+      As with any website, the hosting provider keeps short-lived technical logs (such as
+      IP addresses and requested pages) to deliver the site securely and reliably.
+    </p>
+
+    <h2>your choices</h2>
+    <p>
+      To ask what information is held about you, or to have a message you sent deleted,
+      please get in touch through the <a href="/contact/">contact page</a>{site.contactEmail && <> or at <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a></>}.
+    </p>
+  </div>
+</BaseLayout>

@@ -1,0 +1,147 @@
+---
+import '../styles/global.css';
+import Seo from '../components/Seo.astro';
+import site from '../data/site.json';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  cropImage?: boolean;
+  type?: 'website' | 'article' | 'profile';
+  noindex?: boolean;
+}
+
+const props = Astro.props;
+const path = Astro.url.pathname;
+
+const nav = [
+  { href: '/', label: 'home' },
+  { href: '/artwork/', label: 'artwork' },
+  { href: '/writing/', label: 'writing' },
+  { href: '/about/', label: 'about' },
+  { href: '/contact/', label: 'contact' },
+];
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const analytics = site.analytics;
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>document.documentElement.classList.add('js')</script>
+    <meta name="theme-color" content="#f5f1e8" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <Seo {...props} />
+    {analytics.approvedByArtist && analytics.domain && (
+      <script is:inline defer data-domain={analytics.domain} src={analytics.scriptSrc}></script>
+    )}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">skip to content</a>
+
+    <header class="site-header wrap">
+      <a class="wordmark" href="/" aria-label={`${site.byline} — home`}>{site.byline}</a>
+      <nav aria-label="Main">
+        <ul>
+          {nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer class="site-footer wrap">
+      <hr class="rule" />
+      <div class="footer-inner">
+        <p class="footer-id">
+          <span>{site.byline}</span>
+          <span class="concept">{site.concept}</span>
+        </p>
+        <ul class="label footer-links">
+          <li><a href="/contact/">contact</a></li>
+          <li><a href="/privacy/">privacy</a></li>
+          <li><span>© {year} {site.byline}</span></li>
+        </ul>
+      </div>
+    </footer>
+
+    <script>
+      import '../lib/reveal';
+    </script>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    padding-top: clamp(1.25rem, 3vw, 2.25rem);
+    padding-bottom: 1rem;
+  }
+  .wordmark {
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+  }
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+  }
+  nav a {
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    color: var(--muted);
+    padding-block: 0.4rem;
+    display: inline-block;
+    border-bottom: 1px solid transparent;
+    transition: color 200ms var(--ease), border-color 200ms var(--ease);
+  }
+  nav a:hover { color: var(--ink); }
+  nav a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--ink); }
+
+  main:focus { outline: none; }
+
+  .site-footer { margin-top: var(--space-5); padding-bottom: 2rem; }
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem 2rem;
+    padding-top: 1.5rem;
+  }
+  .footer-id { margin: 0; display: flex; gap: 0.25rem 1.25rem; flex-wrap: wrap; }
+  .footer-id .concept { font-style: italic; color: var(--muted); }
+  .footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+  }
+  .footer-links a { text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+</style>

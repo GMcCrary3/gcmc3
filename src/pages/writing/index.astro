@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getWriting, writingKinds, type Writing } from '../../lib/content';
+
+const all = await getWriting();
+const order: Writing['data']['kind'][] = ['book', 'poetry', 'prose', 'publication'];
+const groups = order
+  .map((kind) => ({ kind, label: writingKinds[kind], items: all.filter((w) => w.data.kind === kind) }))
+  .filter((g) => g.items.length > 0);
+---
+<BaseLayout title="writing" description="Books, poetry, and prose by giles c mccrary iii.">
+  <header class="page-head wrap">
+    <span class="label">writing</span>
+    <h1>writing</h1>
+  </header>
+
+  {groups.map((g) => (
+    <section class="group wrap" aria-labelledby={`g-${g.kind}`}>
+      <h2 id={`g-${g.kind}`}>{g.label}</h2>
+      <ul>
+        {g.items.map((w) => (
+          <li data-reveal>
+            <a href={`/writing/${w.id}/`}>
+              <span class="t">{w.data.title}</span>
+              {w.data.subtitle && <span class="sub">{w.data.subtitle}</span>}
+            </a>
+            {w.data.year && <span class="label">{w.data.year}</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</BaseLayout>
+
+<style>
+  .group { padding-top: var(--space-3); }
+  .group + .group { padding-top: var(--space-4); }
+  h2 {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    font-weight: 450;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  li a { text-decoration: none; display: grid; gap: 0.25rem; }
+  .t {
+    font-size: clamp(1.625rem, 1.1rem + 2.2vw, 3.25rem);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+  }
+  .sub { font-style: italic; color: var(--ink-soft); }
+  li a:hover .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+</style>

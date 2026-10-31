@@ -1,0 +1,110 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
+const form = site.contactForm;
+---
+<BaseLayout title="contact" description={`Contact ${site.byline}.`}>
+  <header class="page-head wrap">
+    <span class="label">contact</span>
+    <h1>contact</h1>
+  </header>
+
+  <div class="wrap layout">
+    {form.enabled && (
+      <form
+        name="contact"
+        method="POST"
+        action="/contact/thanks/"
+        data-netlify="true"
+        netlify-honeypot="company"
+        {...(form.recaptcha ? { 'data-netlify-recaptcha': 'true' } : {})}
+        class="contact-form"
+      >
+        <input type="hidden" name="form-name" value="contact" />
+        <p class="hp" aria-hidden="true">
+          <label>Leave this empty <input name="company" tabindex="-1" autocomplete="off" /></label>
+        </p>
+
+        <div class="field">
+          <label for="name">name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required maxlength="120" />
+        </div>
+        <div class="field">
+          <label for="email">email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" />
+        </div>
+        <div class="field">
+          <label for="subject">subject <span class="opt">(optional)</span></label>
+          <input id="subject" name="subject" type="text" maxlength="200" />
+        </div>
+        <div class="field">
+          <label for="message">message</label>
+          <textarea id="message" name="message" rows="7" required maxlength="5000"></textarea>
+        </div>
+
+        {form.recaptcha && <div data-netlify-recaptcha="true"></div>}
+
+        <p class="privacy-note" id="privacy-note">
+          Your name, email address, and message are used only to reply to you. They are
+          not added to any mailing list or shared. <a href="/privacy/">How contact details are handled</a>.
+        </p>
+        <button type="submit" aria-describedby="privacy-note">send</button>
+      </form>
+    )}
+
+    {site.contactEmail && (
+      <p class="direct">or write directly: <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a></p>
+    )}
+  </div>
+
+  <script>
+    // Prefill the subject when arriving from an artwork page (?about=…).
+    const about = new URLSearchParams(location.search).get('about');
+    const subject = document.querySelector<HTMLInputElement>('#subject');
+    if (about && subject && !subject.value) subject.value = about.slice(0, 200);
+  </script>
+</BaseLayout>
+
+<style>
+  .layout { max-width: 40rem; margin-left: 0; }
+  @media (min-width: 60em) { .layout { margin-left: 8%; } }
+  .contact-form { display: grid; gap: 1.5rem; }
+  .field { display: grid; gap: 0.4rem; }
+  label {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .opt { color: var(--muted); }
+  input, textarea {
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--muted);
+    border-radius: 0;
+    padding: 0.5rem 0;
+    width: 100%;
+    transition: border-color 200ms var(--ease);
+  }
+  textarea { border: 1px solid var(--muted); padding: 0.75rem; resize: vertical; }
+  input:hover, textarea:hover { border-color: var(--ink); }
+  input:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-color: var(--ink); }
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .privacy-note { font-size: 0.9375rem; color: var(--ink-soft); margin: 0; max-width: var(--measure); }
+  button {
+    justify-self: start;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    background: var(--ink);
+    color: var(--ivory);
+    border: 1px solid var(--ink);
+    padding: 0.85rem 2.25rem;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease), color 200ms var(--ease);
+  }
+  button:hover { background: transparent; color: var(--ink); }
+  .direct { margin-top: var(--space-3); }
+</style>

@@ -1,0 +1,41 @@
+---
+/**
+ * A visible reminder for the artist/editor about content still awaiting
+ * approval. Rendered only while `showEditorialNotes` is true in
+ * src/data/site.json — switch it off before launch and these disappear.
+ * Nothing in these notes is ever published as content.
+ */
+import site from '../data/site.json';
+interface Props { inline?: boolean }
+const { inline = false } = Astro.props;
+---
+{site.showEditorialNotes && (
+  <aside class:list={['editorial-note', { inline }]} role="note" aria-label="Editorial note">
+    <span class="tag">editorial note</span>
+    <span class="body"><slot /></span>
+  </aside>
+)}
+
+<style>
+  .editorial-note {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    border: 1px dashed var(--muted);
+    padding: 0.75rem 0.9rem;
+    max-width: var(--measure);
+    margin-block: 1rem;
+    background: color-mix(in srgb, var(--ivory-deep) 60%, transparent);
+  }
+  .editorial-note.inline { display: inline-block; margin: 0.25rem 0; padding: 0.3rem 0.55rem; }
+  .tag {
+    display: block;
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+  }
+  .inline .tag { display: inline; margin-right: 0.4rem; }
+</style>

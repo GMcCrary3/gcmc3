@@ -1,0 +1,157 @@
+# Content editor for GilesMcCrary.com (Decap CMS).
+# Open https://gilesmccrary.com/admin/ and sign in with GitHub.
+# Every save is a commit to the repository; the site rebuilds automatically.
+
+backend:
+  name: github
+  repo: GMcCrary3/gcmc3
+  branch: main
+  base_url: https://api.netlify.com   # Netlify provides the GitHub sign-in
+  commit_messages:
+    create: "add {{collection}} “{{slug}}”"
+    update: "update {{collection}} “{{slug}}”"
+    delete: "remove {{collection}} “{{slug}}”"
+    uploadMedia: "upload “{{path}}”"
+    deleteMedia: "delete “{{path}}”"
+
+# For editing on your own computer: run `npm run cms` alongside `npm run dev`,
+# then open http://localhost:4321/admin/
+local_backend: true
+
+# Optional review step: changes are saved as drafts and published when approved.
+publish_mode: editorial_workflow
+
+site_url: https://gilesmccrary.com
+display_url: https://gilesmccrary.com
+logo_url: /favicon.svg
+
+# Original files are stored unaltered in the repository; the site makes
+# web-sized copies at build time.
+media_folder: src/assets/artwork
+public_folder: /src/assets/artwork
+
+collections:
+  - name: artwork
+    label: artwork
+    label_singular: work
+    folder: src/content/artwork
+    create: true
+    slug: "work-{{fields.ref}}"
+    identifier_field: ref
+    summary: "{{ref}} · {{collection}} · {{title}}"
+    sortable_fields: [order, ref, title]
+    view_groups:
+      - { label: collection, field: collection }
+    fields:
+      - { label: "reference number", name: ref, widget: string, hint: "Site catalogue number, e.g. 11. Shown as “no. 11” when there is no title." }
+      - { label: "original image file", name: image, widget: image, hint: "Upload the original file (JPEG, PNG or WebP, sRGB, ideally 3000px+ on the long side). It is never cropped or filtered on its page." }
+      - { label: "image description (alt text)", name: alt, widget: text, required: false, hint: "Describe what can be seen, for visitors using screen readers. One or two plain sentences." }
+      - { label: title, name: title, widget: string, required: false, hint: "Leave blank if untitled or not yet decided — blank fields are never published." }
+      - { label: year, name: year, widget: string, required: false }
+      - { label: medium, name: medium, widget: string, required: false }
+      - { label: dimensions, name: dimensions, widget: string, required: false, hint: "e.g. 48 × 36 in." }
+      - { label: availability, name: availability, widget: string, required: false, hint: "Leave blank to say nothing. Anything written here is published as-is." }
+      - label: collection
+        name: collection
+        widget: select
+        default: archive
+        options:
+          - { label: "selected works", value: selected }
+          - { label: "archive & process", value: archive }
+      - { label: "order", name: order, widget: number, value_type: int, default: 100, hint: "Lower numbers appear first within the collection." }
+      - { label: "hide (draft)", name: draft, widget: boolean, default: false, required: false }
+      - { label: "interpretation or note", name: body, widget: markdown, required: false, buttons: [bold, italic, link, quote] }
+
+  - name: writing
+    label: writing
+    label_singular: writing
+    folder: src/content/writing
+    create: true
+    slug: "{{slug}}"
+    summary: "{{kind}} · {{title}}"
+    media_folder: /src/assets/writing
+    public_folder: /src/assets/writing
+    view_groups:
+      - { label: kind, field: kind }
+    fields:
+      - { label: title, name: title, widget: string, hint: "Exactly as it should appear, including capitalisation." }
+      - label: kind
+        name: kind
+        widget: select
+        options:
+          - { label: book, value: book }
+          - { label: poetry, value: poetry }
+          - { label: prose, value: prose }
+          - { label: "publication (elsewhere)", value: publication }
+      - { label: subtitle, name: subtitle, widget: string, required: false }
+      - { label: year, name: year, widget: string, required: false }
+      - { label: publisher, name: publisher, widget: string, required: false }
+      - { label: "short description", name: description, widget: text, required: false }
+      - { label: "cover image", name: cover, widget: image, required: false }
+      - { label: "cover description (alt text)", name: coverAlt, widget: string, required: false }
+      - label: links
+        name: links
+        widget: list
+        required: false
+        hint: "Where to read or buy, e.g. a bookshop or publisher page."
+        fields:
+          - { label: label, name: label, widget: string }
+          - { label: url, name: url, widget: string }
+      - { label: order, name: order, widget: number, value_type: int, default: 100 }
+      - { label: "hide (draft)", name: draft, widget: boolean, default: false, required: false }
+      - { label: "text (poems keep their line breaks)", name: body, widget: markdown, required: false }
+
+  - name: pages
+    label: site copy
+    files:
+      - label: homepage copy
+        name: home
+        file: src/content/pages/home.md
+        fields: &copyfields
+          - { label: title, name: title, widget: hidden }
+          - { label: "approved", name: approved, widget: boolean, default: false, required: false }
+          - { label: text, name: body, widget: markdown, required: false }
+      - label: artist statement
+        name: statement
+        file: src/content/pages/statement.md
+        fields: *copyfields
+      - label: about
+        name: about
+        file: src/content/pages/about.md
+        fields: *copyfields
+
+  - name: settings
+    label: settings
+    files:
+      - label: site settings
+        name: site
+        file: src/data/site.json
+        format: json
+        fields:
+          - { label: "site name", name: siteName, widget: string }
+          - { label: byline, name: byline, widget: string }
+          - { label: concept, name: concept, widget: string }
+          - { label: "secondary line", name: secondaryLine, widget: string }
+          - { label: "search & sharing description", name: description, widget: text }
+          - { label: "public contact email (optional)", name: contactEmail, widget: string, required: false }
+          - { label: "show editorial notes (turn off at launch)", name: showEditorialNotes, widget: boolean }
+          - label: hero
+            name: hero
+            widget: object
+            fields:
+              - { label: "artwork entry", name: artwork, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: [ref, title] }
+              - { label: "crop focus (x% y%)", name: focus, widget: string, hint: "Which part of the painting stays visible when the hero is cropped, e.g. 50% 45%." }
+          - label: contact form
+            name: contactForm
+            widget: object
+            fields:
+              - { label: enabled, name: enabled, widget: boolean }
+              - { label: "require reCAPTCHA", name: recaptcha, widget: boolean }
+          - label: analytics
+            name: analytics
+            widget: object
+            fields:
+              - { label: "approved by the artist", name: approvedByArtist, widget: boolean, hint: "Nothing is measured until this is on." }
+              - { label: provider, name: provider, widget: hidden }
+              - { label: domain, name: domain, widget: string }
+              - { label: "script url", name: scriptSrc, widget: string }

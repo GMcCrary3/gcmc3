@@ -1,0 +1,31 @@
+{
+  "name": "gilesmccrary-com",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GilesMcCrary.com — abstractly concrete. Artist and writer website for giles c mccrary iii.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "build:fast": "astro build",
+    "preview": "astro preview",
+    "cms": "npx --yes decap-server@3",
+    "check": "astro check",
+    "status": "node scripts/content-status.mjs",
+    "og": "node scripts/make-og-default.mjs"
+  },
+  "engines": {
+    "node": ">=20.3.0"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/inter-tight": "5.3.0",
+    "@fontsource-variable/newsreader": "5.3.0",
+    "astro": "5.18.2",
+    "sharp": "0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.6.3"
+  }
+}

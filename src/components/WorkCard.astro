@@ -1,0 +1,55 @@
+---
+import ArtworkImage from './ArtworkImage.astro';
+import { artworkAlt, artworkLabel, type Artwork } from '../lib/content';
+
+interface Props {
+  work: Artwork;
+  sizes: string;
+  eager?: boolean;
+  showMeta?: boolean;
+}
+const { work, sizes, eager = false, showMeta = true } = Astro.props;
+const d = work.data;
+const label = artworkLabel(work);
+const meta = [d.year, d.medium].filter(Boolean).join(', ');
+---
+<figure class="work" data-reveal>
+  <a href={`/artwork/${work.id}/`} class="work-link">
+    <ArtworkImage src={d.image} alt={artworkAlt(work)} sizes={sizes} eager={eager} />
+    <span class="visually-hidden">View {label}</span>
+  </a>
+  {showMeta && (
+    <figcaption>
+      <a href={`/artwork/${work.id}/`} class:list={['work-title', { untitled: !d.title }]}>{label}</a>
+      {meta && <span class="label">{meta}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .work { margin: 0; }
+  .work-link { display: block; text-decoration: none; overflow: hidden; }
+  .work-link :global(img),
+  .work-link :global(.art-missing) {
+    transition: opacity 400ms var(--ease), transform 900ms var(--ease);
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .work-link:hover :global(img) { opacity: 0.92; }
+  }
+  .work-link:focus-visible { outline-offset: 4px; }
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    padding-top: 0.75rem;
+  }
+  .work-title { text-decoration: none; font-size: 1rem; }
+  .work-title.untitled {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+  }
+  .work-title:hover { text-decoration: underline; }
+</style>
