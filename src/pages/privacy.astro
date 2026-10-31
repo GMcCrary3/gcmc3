@@ -30,29 +30,42 @@ const analyticsOn = a.approvedByArtist && a.domain;
       to respond, then deleted.
     </p>
 
-    {site.field.open && (
-      <>
-        <h2>the field</h2>
-        <p>
-          If you choose to leave a piece in the field, only its letters, their arrangement,
-          and the date are stored, so that the piece can be shown to others as part of the
-          collective work. No name, email address, IP address, or other information about
-          you is stored with it. The word you type is checked automatically for offensive
-          language, links, and contact details, and is not kept separately.
-        </p>
-        <p>
-          Your browser keeps a private key for each piece you leave, so that you, and only
-          you, can remove it later from the piece's page. To limit abuse, the host counts
-          how often pieces are submitted from the same connection for a short time; this is
-          not stored with your piece. Pieces can be reported by visitors and are reviewed by
-          the artist.
-        </p>
-        <p>
-          Nothing you do in <a href="/abstract/">abstract your own concrete</a> leaves your
-          browser unless you choose to leave it in the field.
-        </p>
-      </>
-    )}
+    <h2>the field</h2>
+    <p>
+      <strong>What is stored with a piece.</strong> If you choose to leave a piece in the
+      field, the site stores its letters, their arrangement, the date, the version of the
+      <a href="/field/terms/">participation terms</a> you agreed to, and its moderation state
+      (for example, whether it has been reported). The word you typed is checked automatically
+      and then discarded; it is not stored separately. No name, email address, IP address,
+      or device identifier is stored with your piece.
+    </p>
+    <p>
+      <strong>What the host processes.</strong> Like every website, the site is delivered by
+      its host, Netlify, which necessarily processes your IP address and basic request
+      details (such as browser type and the address requested) to serve pages, protect the
+      site, and enforce rate limits on submissions. Netlify may keep this information in its
+      own logs for a limited time under its own privacy policy. The site’s code does not
+      record it, and it is never linked to your piece.
+    </p>
+    <p>
+      <strong>Your removal key.</strong> When you leave a piece, the server creates a random
+      key, gives it once to your browser, and keeps only a one-way fingerprint (a hash) of it.
+      Your browser saves the key in its local storage (not a cookie). With it, and only with
+      it, you can remove your piece from its link on the same device. If you clear your
+      browser data, the key is gone; you can still ask for removal through the
+      <a href="/contact/">contact page</a>, quoting the piece’s link.
+    </p>
+    <p>
+      <strong>When a piece is removed</strong> (by you or in moderation), its letters are
+      erased from the live record at once and it disappears from the field. A small empty
+      record remains so that old links show it is gone. The host may keep operational copies
+      of stored data for a limited period under its own practices; these are not used to show
+      the piece again. Images or links that others have already shared cannot be recalled.
+    </p>
+    <p>
+      Nothing you do in <a href="/abstract/">abstract your own concrete</a> leaves your
+      browser unless you choose to leave it in the field.
+    </p>
 
     <h2>analytics</h2>
     {analyticsOn ? (
@@ -69,14 +82,14 @@ const analyticsOn = a.approvedByArtist && a.domain;
 
     <h2>cookies</h2>
     <p>
-      The public site sets no cookies. If you leave a piece in the field, your browser stores
-      a small private key (in local storage, not a cookie) so you can remove the piece later.
+      The public site sets no cookies. Your browser’s local storage is used only for the
+      field’s removal keys (above) and to remember whether you hid the exhibition guide.
     </p>
 
     <h2>server logs</h2>
     <p>
-      As with any website, the hosting provider keeps short-lived technical logs (such as
-      IP addresses and requested pages) to deliver the site securely and reliably.
+      As with any website, the host processes and briefly logs technical information such as
+      IP addresses and requested pages in order to deliver the site securely and reliably.
     </p>
 
     <h2>your choices</h2>

@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# The field: deploy previews and branch deploys use their own storage, so
+# testing never touches the real field. (Production uses the store "field".)
+[context.deploy-preview.environment]
+  FIELD_STORE = "field-preview"
+[context.branch-deploy.environment]
+  FIELD_STORE = "field-preview"
+
 # Redirect www to the bare domain (HTTPS is provisioned automatically by Netlify).
 [[redirects]]
   from = "https://www.gilesmccrary.com/*"

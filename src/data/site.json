@@ -9,6 +9,7 @@
   "description": "abstractly concrete. the art of unthinking. An interactive exhibition of paintings and writing by giles c mccrary iii.",
   "contactEmail": "",
   "showEditorialNotes": true,
+  "prelaunch": true,
   "showAvailability": false,
   "hero": {
     "artwork": "work-01",
@@ -41,12 +42,21 @@
   },
   "field": {
     "open": true,
-    "moderation": "post",
+    "moderation": "pre",
+    "termsVersion": "2026-10-31",
+    "label": "abstractly concrete / participation",
     "title": "the field.",
-    "subtitle": "every piece here was abstracted by a visitor and left for the next.",
-    "leave": "leave it for others",
-    "consent": "Your piece joins the field anonymously: only the letters and their arrangement are kept, nothing about you. Leaving it means it can be shown as part of this collective work by giles c mccrary iii, on this site and wherever the work is exhibited.",
-    "credit": "abstractly concrete · giles c mccrary iii · gilesmccrary.com/field"
+    "intro": "Every idea begins somewhere.\nTake one apart. Rearrange what remains.\nLeave it here.\nSee what happens when it meets the others.",
+    "invitation": "An artwork without a final form.\nIt begins with an idea. What remains is yours to discover. What you leave becomes part of something larger.",
+    "leave": "leave it for others.",
+    "seenAsOne": "seen as one.",
+    "oneByOne": "one by one.",
+    "contributorNote": "Every piece in the field was made by a visitor. Pieces are contributions to the work, not works by giles c mccrary iii, and are not individually endorsed by the artist.",
+    "creditLines": [
+      "abstractly concrete",
+      "a participatory artwork by giles c mccrary iii",
+      "gilesmccrary.com/field"
+    ]
   },
   "contactForm": {
     "enabled": true,

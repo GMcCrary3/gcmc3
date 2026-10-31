@@ -10,30 +10,67 @@ export type PublicPiece = {
   glyphs: Glyph[];
 };
 
-const SVG = 'http://www.w3.org/2000/svg';
-
-/** Draws a piece as an SVG, from its stored letters and positions. */
-export function pieceSvg(p: PublicPiece, label?: string): SVGSVGElement {
+/**
+ * Draws a piece onto a canvas. The field's tiles, the enlarged view, and the
+ * shared image all use this one routine (drawGlyphs), so what is shown is
+ * exactly what was submitted.
+ */
+export function pieceSvg(p: PublicPiece, label?: string): HTMLCanvasElement {
   const W = p.aspect === 'portrait' ? 300 : 400;
   const H = p.aspect === 'portrait' ? 400 : 300;
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  svg.setAttribute('class', 'piece-svg');
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', label ?? pieceLabel(p));
-  const fs = (p.base / 100) * W;
-  for (const g of p.glyphs) {
-    const t = document.createElementNS(SVG, 'text');
-    t.textContent = g.c;
-    t.setAttribute('transform', `translate(${(g.x / 100) * W} ${(g.y / 100) * H}) rotate(${g.r}) scale(${g.s})`);
-    t.setAttribute('font-size', String(fs));
-    t.setAttribute('text-anchor', 'middle');
-    t.setAttribute('dominant-baseline', 'central');
-    t.setAttribute('class', [g.f ? 'sans' : '', g.t ? 'slate' : ''].join(' ').trim());
-    svg.appendChild(t);
+  const dpr = Math.min(2, window.devicePixelRatio || 1) * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.className = 'piece-svg';
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', label ?? pieceLabel(p));
+  void fontsReady().then(() => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    drawGlyphs(ctx, p, W, H, palette());
+  });
+  return canvas;
+}
+
+type Palette = { serif: string; sans: string; ink: string; slate: string };
+const palette = (): Palette => ({
+  serif: cssVar('--serif', 'Georgia, serif'),
+  sans: cssVar('--sans', 'Arial, sans-serif'),
+  ink: cssVar('--ink', '#18191b'),
+  slate: cssVar('--slate', '#53616d'),
+});
+
+let fontsPromise: Promise<unknown> | null = null;
+function fontsReady() {
+  if (!fontsPromise) {
+    const { serif, sans } = palette();
+    fontsPromise = Promise.all([
+      document.fonts.load(`450 40px ${serif}`),
+      document.fonts.load(`italic 450 40px ${serif}`),
+      document.fonts.load(`300 40px ${sans}`),
+      document.fonts.load(`450 40px ${sans}`),
+    ]).catch(() => undefined);
   }
-  return svg;
+  return fontsPromise;
+}
+
+/** The single drawing routine for a composition, in an art area W × H. */
+function drawGlyphs(ctx: CanvasRenderingContext2D, c: Composition, W: number, H: number, pal: Palette) {
+  const fs = (c.base / 100) * W;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const g of c.glyphs) {
+    ctx.save();
+    ctx.translate((g.x / 100) * W, (g.y / 100) * H);
+    ctx.rotate((g.r * Math.PI) / 180);
+    ctx.scale(g.s, g.s);
+    ctx.font = g.f ? `300 ${fs}px ${pal.sans}` : `450 ${fs}px ${pal.serif}`;
+    ctx.fillStyle = g.t ? pal.slate : pal.ink;
+    ctx.fillText(g.c, 0, 0);
+    ctx.restore();
+  }
 }
 
 export const pieceLabel = (p: PublicPiece) =>
@@ -73,6 +110,9 @@ export const reasons: Record<string, string> = {
   characters: 'the field accepts letters, numbers, and simple punctuation.',
   'too long': 'that is too long for the field.',
   closed: 'the field is closed for now.',
+  terms: 'please agree to the participation terms first.',
+  duplicate: 'this exact piece was already left today. change something, and leave it again.',
+  empty: 'the field needs at least one letter.',
 };
 
 export function errorMessage(status: number, error?: string) {
@@ -98,3 +138,58 @@ export async function share(url: string, text: string, file?: File): Promise<'sh
   }
   try { await navigator.clipboard.writeText(url); return 'copied'; } catch { return 'cancelled'; }
 }
+
+/* ------------------------------------------------------------ image export */
+
+export type Composition = Pick<PublicPiece, 'aspect' | 'base' | 'glyphs'>;
+
+const cssVar = (name: string, fallback: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+
+/**
+ * Draws a composition to a PNG using exactly the geometry the field uses to
+ * display stored pieces (positions as % of the art area, size = base% of its
+ * width, rotation and scale about each letter's centre), so a shared image
+ * matches what was submitted. The credit sits in its own band below the
+ * art, never over it.
+ */
+export async function compositionImage(c: Composition, credit: string[], note: string): Promise<Blob | null> {
+  await fontsReady();
+  const pal = palette();
+  const artW = c.aspect === 'portrait' ? 1200 : 1600;
+  const artH = c.aspect === 'portrait' ? 1600 : 1200;
+  const unit = artW / 100; // 1% of the width
+  const band = Math.round(unit * 19);
+  const canvas = document.createElement('canvas');
+  canvas.width = artW;
+  canvas.height = artH + band;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  ctx.fillStyle = cssVar('--ivory-deep', '#e9e4d8');
+  ctx.fillRect(0, 0, artW, artH);
+  ctx.fillStyle = cssVar('--ivory', '#f3f0e8');
+  ctx.fillRect(0, artH, artW, band);
+  drawGlyphs(ctx, c, artW, artH, pal);
+
+  // Credit band: below the art, never over it; sized to stay legible small.
+  const pad = unit * 4;
+  const [title, byline, url] = credit;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = pal.ink;
+  ctx.font = `italic 450 ${unit * 4.6}px ${pal.serif}`;
+  ctx.fillText(title ?? '', pad, artH + unit * 7);
+  ctx.font = `450 ${unit * 2.8}px ${pal.sans}`;
+  ctx.fillText(byline ?? '', pad, artH + unit * 11.6);
+  ctx.fillStyle = pal.slate;
+  ctx.fillText(url ?? '', pad, artH + unit * 15.4);
+  if (note) {
+    ctx.textAlign = 'right';
+    ctx.font = `450 ${unit * 2.4}px ${pal.sans}`;
+    ctx.fillText(note, artW - pad, artH + unit * 15.4);
+  }
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'));
+}
+
+export const contributionNote = (n?: number) => (n ? `made by a visitor · field no. ${n.toLocaleString('en')}` : 'made by a visitor');

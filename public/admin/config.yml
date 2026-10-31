@@ -225,6 +225,7 @@ collections:
           - { label: "search & sharing description", name: description, widget: text }
           - { label: "public contact email (optional)", name: contactEmail, widget: string, required: false }
           - { label: "show editorial notes (turn off at launch)", name: showEditorialNotes, widget: boolean }
+          - { label: "prelaunch: hide the whole site from search engines", name: prelaunch, widget: boolean, hint: "Keep on until launch is approved." }
           - { label: "show availability on artwork pages", name: showAvailability, widget: boolean }
           - label: hero
             name: hero
@@ -256,7 +257,7 @@ collections:
               - { label: "button", name: begin, widget: string }
               - { label: "when every letter is erased", name: empty, widget: string }
               - { label: "privacy line under the prompt", name: privacy, widget: string }
-          - label: "the field (collective work)"
+          - label: "the field (participatory artwork)"
             name: field
             widget: object
             fields:
@@ -265,13 +266,18 @@ collections:
                 name: moderation
                 widget: select
                 options:
-                  - { label: "pieces appear at once; reported pieces are held for review", value: post }
-                  - { label: "every piece waits for approval before appearing", value: pre }
+                  - { label: "every piece waits for approval before appearing (recommended for launch)", value: pre }
+                  - { label: "pieces appear at once; reported or flagged pieces are held for review", value: post }
+              - { label: "participation terms version (change when the terms change)", name: termsVersion, widget: string }
+              - { label: "section label", name: label, widget: string }
               - { label: title, name: title, widget: string }
-              - { label: subtitle, name: subtitle, widget: string }
-              - { label: "button", name: leave, widget: string }
-              - { label: "consent text shown before leaving a piece", name: consent, widget: text }
-              - { label: "credit on saved and shared images", name: credit, widget: string }
+              - { label: "introduction (line breaks kept)", name: intro, widget: text }
+              - { label: "invitation (exhibition and homepage; line breaks kept)", name: invitation, widget: text }
+              - { label: "participation button", name: leave, widget: string }
+              - { label: "collective view", name: seenAsOne, widget: string }
+              - { label: "individual view", name: oneByOne, widget: string }
+              - { label: "note on contributors", name: contributorNote, widget: text }
+              - { label: "credit lines on shared images", name: creditLines, widget: list, field: { label: line, name: line, widget: string } }
           - label: contact form
             name: contactForm
             widget: object

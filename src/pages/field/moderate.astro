@@ -23,6 +23,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <button type="button" class="btn" data-view="review">needs review</button>
         <button type="button" class="btn" data-view="recent">most recent</button>
       </p>
+      <p class="views">
+        <button type="button" class="text-btn" data-bulk-show>approve all shown</button>
+        <button type="button" class="text-btn" data-bulk-hide>hide all shown</button>
+        <button type="button" class="text-btn" data-file-now>file waiting pieces now</button>
+      </p>
       <p class="label" data-info aria-live="polite"></p>
       <ol class="items" data-items></ol>
     </div>
@@ -37,10 +42,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .key input { font: inherit; padding: 0.5rem; border: 1px solid var(--ink); background: transparent; min-width: 16rem; }
   .key .label { width: 100%; }
   [data-panel][hidden] { display: none; }
-  .views { display: flex; gap: 0.75rem; }
+  .views { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; }
   .items { list-style: none; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); }
   .items :global(.art) { background: var(--ivory-deep); aspect-ratio: 1; }
-  .items :global(.art svg) { width: 100%; height: 100%; }
+  .items :global(.art .piece-svg) { width: 100%; height: 100%; object-fit: contain; display: block; }
   .items :global(.meta) { font-family: var(--sans); font-size: 0.8125rem; margin: 0.5rem 0; }
   .items :global(.meta .st) { color: var(--oxide); }
   .items :global(.btns) { display: flex; gap: 1rem; }

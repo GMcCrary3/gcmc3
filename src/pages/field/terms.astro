@@ -1,0 +1,102 @@
+---
+/**
+ * Participation terms for the field. The version date is stored with every
+ * piece, so it is always clear which terms a contribution was made under.
+ * Not legal advice — have these reviewed before public launch.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EditorialNote from '../../components/EditorialNote.astro';
+import site from '../../data/site.json';
+const f = site.field;
+---
+<BaseLayout title="participation terms — the field" description="The terms for leaving a piece in the field, a participatory artwork by giles c mccrary iii.">
+  <header class="page-head wrap">
+    <a class="label" href="/field/">{f.title}</a>
+    <h1>participation terms</h1>
+    <p class="label">version {f.termsVersion}</p>
+  </header>
+
+  <div class="wrap prose terms">
+    <EditorialNote>
+      Draft for approval. These terms describe how the field is built and what it does, but
+      they are not legal advice. Please have them reviewed before public launch. If they
+      change, update the version date in settings → the field.
+    </EditorialNote>
+
+    <h2>1. what the field is</h2>
+    <p>
+      The field is a participatory artwork by {site.byline}, part of <em>{site.concept}</em>.
+      Visitors abstract a word of their own and may choose to leave the result in the
+      field, where it is shown together with pieces left by others. {site.byline} is the
+      originating artist of the field. Each piece in it is a contribution by the visitor who
+      made it, and is not created or individually endorsed by the artist.
+    </p>
+
+    <h2>2. what leaving a piece means</h2>
+    <p>When you leave a piece in the field, you understand that:</p>
+    <ul>
+      <li>it becomes publicly visible on gilesmccrary.com, as part of the field;</li>
+      <li>anyone may view it, link to it, and share it, including as an image carrying the field’s credit line;</li>
+      <li>it remains visible until you remove it, or until it is removed in moderation;</li>
+      <li>copies that others have already saved or shared cannot be recalled.</li>
+    </ul>
+
+    <h2>3. ownership and licence</h2>
+    <p>
+      You keep any rights you have in the piece you make. The field does not take ownership
+      of it.
+    </p>
+    <p>
+      By leaving a piece, you grant {site.byline} a non-exclusive, worldwide, royalty-free
+      licence to display, reproduce, and share the piece as part of the field and its
+      documentation: on this website, in exhibitions of the work, and in publications and
+      records about the work. You also permit visitors to share the piece, with its credit
+      line, through the sharing features the field provides.
+    </p>
+    <p>
+      This licence lasts while the piece remains in the field. If the piece is removed, no
+      new uses will be made of it, although documentation already created (for example,
+      photographs of an exhibition) may remain.
+    </p>
+
+    <h2>4. what may not be left</h2>
+    <p>Please do not leave anything that:</p>
+    <ul>
+      <li>is hateful, harassing, or threatening;</li>
+      <li>impersonates the artist or anyone else;</li>
+      <li>contains anyone’s personal information, such as names with contact details, addresses, phone numbers, or emails;</li>
+      <li>contains links, advertising, or spam;</li>
+      <li>you do not have the right to share.</li>
+    </ul>
+    <p>
+      Pieces are checked automatically, {f.moderation === 'pre' ? 'reviewed before they appear,' : 'can be reported by visitors,'}
+      and may be hidden or removed at the artist’s discretion, without notice.
+    </p>
+
+    <h2>5. removing your piece</h2>
+    <p>
+      When you leave a piece, your browser keeps a private removal key for it. Open the piece
+      from its link on the same device and choose “remove my piece”. If you no longer have
+      the key (for example, after clearing your browser data), send the piece’s link through
+      the <a href="/contact/">contact page</a> and it will be removed.
+    </p>
+
+    <h2>6. privacy</h2>
+    <p>
+      Only the piece itself (its letters, their arrangement, and the date) is stored with
+      your contribution. See the <a href="/privacy/">privacy page</a> for everything that is
+      processed when you take part, including by the site’s host.
+    </p>
+
+    <h2>7. no guarantee</h2>
+    <p>
+      The field is an artwork, offered as it is. It may change, pause, or end, and pieces may
+      be rearranged in how they are shown.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .terms h2 { font-size: 1.375rem; margin-top: 2.25rem; }
+  .terms ul { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+</style>

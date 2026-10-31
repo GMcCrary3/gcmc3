@@ -1,4 +1,4 @@
-import { api, forgetMine, mine, pieceLabel, pieceSvg, pieceUrl, share, type PublicPiece } from './field-render';
+import { api, compositionImage, contributionNote, forgetMine, mine, pieceLabel, pieceSvg, pieceUrl, share, type PublicPiece } from './field-render';
 
 type ListResponse = { total?: number; page?: number; pages?: number; pieces?: PublicPiece[] };
 
@@ -7,7 +7,10 @@ const status = document.querySelector<HTMLElement>('[data-status]')!;
 const more = document.querySelector<HTMLButtonElement>('[data-more]')!;
 const countEl = document.querySelector<HTMLElement>('[data-count]')!;
 const countLabel = document.querySelector<HTMLElement>('[data-count-label]')!;
-const toggle = document.querySelector<HTMLButtonElement>('[data-view-toggle]')!;
+const viewBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-view]')];
+const credit = (document.querySelector<HTMLElement>('[data-credit]')?.dataset.credit ?? '').split('\n');
+const reportForm = document.querySelector<HTMLFormElement>('[data-report-form]')!;
+const focusState = document.querySelector<HTMLElement>('[data-focus-state]')!;
 const focus = document.querySelector<HTMLElement>('[data-focus]')!;
 const focusArt = focus.querySelector<HTMLElement>('[data-focus-art]')!;
 const focusTitle = focus.querySelector<HTMLElement>('[data-focus-title]')!;
@@ -51,7 +54,7 @@ function add(pieces: PublicPiece[]) {
 
 function setCount(total: number) {
   countEl.textContent = total.toLocaleString('en');
-  countLabel.textContent = total === 1 ? 'piece so far.' : 'pieces so far.';
+  countLabel.textContent = total === 1 ? 'piece left so far.' : 'pieces left so far.';
 }
 
 async function load(page?: number) {
@@ -68,8 +71,11 @@ async function load(page?: number) {
   more.hidden = nextPage < 0;
 }
 
-function open(p: PublicPiece, push = true) {
+function open(p: PublicPiece, push = true, state = '') {
   current = p;
+  focusState.textContent = state ? `· ${state}` : '';
+  reportForm.hidden = true;
+  reportBtn.setAttribute('aria-expanded', 'false');
   focusArt.replaceChildren(pieceSvg(p));
   focusTitle.textContent = title(p);
   focusStatus.textContent = '';
@@ -93,15 +99,27 @@ focus.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 
 focus.querySelector('[data-share]')!.addEventListener('click', async () => {
   if (!current) return;
-  const r = await share(pieceUrl(current.id), 'abstractly concrete — a piece of the field.');
+  const blob = await compositionImage(current, credit, contributionNote(current.n));
+  const file = blob ? new File([blob], `the-field-${current.n || current.id}.png`, { type: 'image/png' }) : undefined;
+  const r = await share(pieceUrl(current.id), 'abstractly concrete — a piece of the field.', file);
   focusStatus.textContent = r === 'copied' ? 'link copied.' : r === 'shared' ? 'shared.' : '';
 });
 
-reportBtn.addEventListener('click', async () => {
+reportBtn.addEventListener('click', () => {
+  const opening = reportForm.hidden;
+  reportForm.hidden = !opening;
+  reportBtn.setAttribute('aria-expanded', String(opening));
+  if (opening) reportForm.querySelector<HTMLInputElement>('input')?.focus();
+});
+
+reportForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
   if (!current) return;
-  if (!confirm('Report this piece for review? It will be looked at, and hidden if it does not belong here.')) return;
-  const r = await api('/api/field/report', { method: 'POST', body: JSON.stringify({ id: current.id }) });
-  focusStatus.textContent = r.ok ? 'reported. thank you.' : 'could not report just now. try again shortly.';
+  const reason = new FormData(reportForm).get('reason');
+  const r = await api('/api/field/report', { method: 'POST', body: JSON.stringify({ id: current.id, reason }) });
+  reportForm.hidden = true;
+  reportBtn.setAttribute('aria-expanded', 'false');
+  focusStatus.textContent = r.ok ? 'reported. thank you — it will be reviewed.' : 'could not report just now. try again shortly.';
 });
 
 removeBtn.addEventListener('click', async () => {
@@ -120,10 +138,13 @@ removeBtn.addEventListener('click', async () => {
   }
 });
 
-toggle.addEventListener('click', () => {
-  const asOne = list.classList.toggle('as-one');
-  toggle.setAttribute('aria-pressed', String(asOne));
-});
+for (const b of viewBtns) {
+  b.addEventListener('click', () => {
+    const asOne = b.dataset.view === 'one';
+    list.classList.toggle('as-one', asOne);
+    viewBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+}
 
 more.addEventListener('click', async () => {
   more.disabled = true;
@@ -135,8 +156,11 @@ more.addEventListener('click', async () => {
   await load();
   const id = new URLSearchParams(location.search).get('piece');
   if (id) {
-    const r = await api<{ piece?: PublicPiece }>(`/api/field/piece?id=${encodeURIComponent(id)}`);
-    if (r.ok && r.data.piece) open(r.data.piece, false);
-    else status.textContent = 'that piece is no longer in the field.';
+    const key = mine()[id];
+    const r = await api<{ piece?: PublicPiece; status?: string }>(`/api/field/piece?id=${encodeURIComponent(id)}`, {
+      headers: key ? { 'x-field-key': key } : {},
+    });
+    if (r.ok && r.data.piece) open(r.data.piece, false, r.data.status === 'awaiting review' ? 'awaiting review — only you can see it until then' : '');
+    else status.textContent = 'that piece is not in the field.';
   }
 })();

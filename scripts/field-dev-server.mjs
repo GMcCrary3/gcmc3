@@ -1,38 +1,25 @@
 // Local preview of the whole site *including the field*: serves dist/ and runs
 // the Netlify functions against a local Netlify Blobs server.
 //   npm run build && npm run field:dev   →  http://localhost:8888
-// Data is kept in .field-data/ (git-ignored). Moderation token: "local-dev-moderation-token".
+// Data is kept in .field-data/ (git-ignored). Moderation key: "local-dev-moderation-token-0123456789abcdef".
 import { createServer } from 'node:http';
 import { readFile, stat, mkdir } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
-import { BlobsServer } from '@netlify/blobs/server';
+import { BlobsServer } from './_local-blobs.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const dist = join(root, 'dist');
 const port = Number(process.env.PORT ?? 8888);
-
-// The local blobs server does not send ETags on reads (production Netlify Blobs
-// does), so add them here; the field relies on them for safe concurrent writes.
-const originalGet = BlobsServer.prototype.get;
-BlobsServer.prototype.get = async function (req) {
-  const res = await originalGet.call(this, req);
-  if (res.status !== 200) return res;
-  const { dataPath } = this.getLocalPaths(new URL(req.url ?? '', this.address));
-  if (!dataPath) return res;
-  const headers = new Headers(res.headers);
-  headers.set('etag', await BlobsServer.generateETag(dataPath));
-  return new Response(res.body, { status: res.status, headers });
-};
 
 await mkdir(join(root, '.field-data'), { recursive: true });
 const blobs = new BlobsServer({ directory: join(root, '.field-data'), token: 'local', port: 0 });
 const { port: blobsPort } = await blobs.start();
 process.env.FIELD_BLOBS_EDGE_URL = `http://localhost:${blobsPort}`;
 process.env.FIELD_BLOBS_TOKEN = 'local';
-process.env.FIELD_ADMIN_TOKEN ??= 'local-dev-moderation-token';
+process.env.FIELD_ADMIN_TOKEN ??= 'local-dev-moderation-token-0123456789abcdef';
 
 const fns = await Promise.all(
-  ['field-read', 'field-write', 'field-moderate'].map(async (name) => {
+  ['field-read', 'field-leave', 'field-actions', 'field-moderate'].map(async (name) => {
     const mod = await import(join(root, 'netlify/functions', `${name}.mts`));
     const paths = [mod.config.path].flat();
     return { handler: mod.default, paths, methods: mod.config.method };

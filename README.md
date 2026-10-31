@@ -15,7 +15,8 @@ the site needs no server, which keeps it faster, simpler, and more secure), edit
 | `/` | full-viewport opening: artwork no. 01, *abstractly concrete.*, *the art of unthinking.*, the opening statement, "Enter the exhibition" / "Explore the artwork" |
 | `/exhibition/` | **the primary experience**: five movements of paintings, interludes and optional poem reveals, with a hideable movement guide, previous/next controls and enlargement |
 | `/abstract/` | *abstract your own concrete.* — visitors name something concrete and take it apart themselves (loosen, scatter, unweight, erase, drag); they can save the result as an image. Nothing they type leaves their browser |
-| `/field/` | **the field** — the collective work: every piece a visitor abstracted and chose to leave for others, seen as one continuous surface or one by one, with a live count. Each piece has its own link to share |
+| `/field/` | **the field.** — *abstractly concrete / participation*: a participatory artwork. Visitors' contributions, *seen as one.* or *one by one.*; each has its own link and shareable image |
+| `/field/terms/` | participation terms (draft, pending legal review) |
 | `/field/moderate/` | the artist's private moderation view (needs the moderation key) |
 | `/artwork/` | selected works (01, 07, 08, 05, 06, 03), then archive & process (09, 04, 02, 10) |
 | `/artwork/work-NN/` | one page per work: the whole image, enlargeable, only confirmed details, a link to where it hangs in the exhibition |
@@ -45,8 +46,11 @@ has not been approved (interludes, the working artist statement) is visible only
 8. **Privacy page** and **analytics** approval. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#analytics).
 9. At launch, set *show editorial notes* to off under *settings*.
 
-The full launch checklist, with what has and has not been verified, is in
-[docs/LAUNCH-CHECKLIST.md](docs/LAUNCH-CHECKLIST.md).
+The production deployment checklist, with what has and has not been verified, is in
+[docs/LAUNCH-CHECKLIST.md](docs/LAUNCH-CHECKLIST.md). The field's consent language,
+moderation, deletion and failure behaviour are in
+[docs/FIELD-OPERATIONS.md](docs/FIELD-OPERATIONS.md). The site stays hidden from search
+engines (`prelaunch`) until launch is approved.
 
 ## Working on the site locally
 
@@ -60,6 +64,7 @@ npm run build        # type-check and build to dist/
 npm run preview      # serve the built site
 npm run status       # list missing images, empty fields, unapproved copy
 npm run field:dev    # after a build: the whole site *with the field working*, at http://localhost:8888
+npm run test:field   # automated tests for the field (consent, moderation, concurrency, crash recovery)
 ```
 
 ## More

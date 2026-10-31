@@ -16,7 +16,7 @@ const field = site.field;
     <h1>{room.title}</h1>
   </header>
 
-  <div class="wrap room" data-room data-credit={field.credit}>
+  <div class="wrap room" data-room data-credit={field.creditLines.join('\n')}>
     <noscript><p class="prose">This space needs JavaScript to work. Everything else on the site does not.</p></noscript>
 
     <form class="name-form" data-name-form>
@@ -50,9 +50,20 @@ const field = site.field;
         <div class="leave">
           <button type="button" class="btn primary" data-act="leave" aria-expanded="false" aria-controls="leave-panel">{field.leave} <span aria-hidden="true">→</span></button>
           <div class="leave-panel" id="leave-panel" data-leave-panel hidden>
-            <p>{field.consent}</p>
+            <h2 class="label">before you leave it</h2>
+            <ul class="terms-summary">
+              <li>Your piece becomes <strong>publicly visible</strong> in the field, a participatory artwork by {site.byline}, alongside pieces by other visitors.</li>
+              <li>Anyone may <strong>view, link to, and share</strong> it, with the field’s credit line.</li>
+              <li>It stays until <strong>you remove it</strong> (from its link, on this device) or it is removed in moderation. Copies others have already shared cannot be recalled.</li>
+              <li><strong>You keep ownership</strong> of what you made. You give the project a non-exclusive licence to show and share it as part of the field.</li>
+              <li>{field.moderation === 'pre' ? 'Pieces are reviewed before they appear.' : 'Pieces can be reported and are reviewed.'} No hate, threats, impersonation, or anyone’s personal information.</li>
+            </ul>
+            <p class="agree">
+              <input type="checkbox" id="agree" data-agree value={field.termsVersion} />
+              <label for="agree">I have read and agree to the <a href="/field/terms/" target="_blank" rel="noopener">participation terms</a>.</label>
+            </p>
             <p class="leave-actions">
-              <button type="button" class="btn primary" data-act="confirm-leave">leave it</button>
+              <button type="button" class="btn primary" data-act="confirm-leave">{field.leave}</button>
               <button type="button" class="text-btn" data-act="cancel-leave">not yet</button>
             </p>
             <p class="leave-error" data-leave-error role="alert" hidden></p>
@@ -143,6 +154,10 @@ const field = site.field;
   .leave { margin-top: var(--space-3); border-top: 1px solid var(--rule); padding-top: 1.5rem; }
   .leave-panel, .left-panel { margin-top: 1.25rem; max-width: 40rem; }
   .leave [hidden] { display: none; }
+  .terms-summary { margin: 0.75rem 0 1.25rem; padding-left: 1.1rem; display: grid; gap: 0.5rem; font-size: 1.0625rem; line-height: 1.45; }
+  .terms-summary strong { font-weight: 600; }
+  .agree { display: flex; gap: 0.6rem; align-items: baseline; font-family: var(--sans); font-size: 0.9375rem; }
+  .agree input { width: 1.1rem; height: 1.1rem; accent-color: var(--ink); flex: none; transform: translateY(0.15rem); }
   .leave-actions { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; align-items: center; }
   .leave-error { color: var(--oxide); font-family: var(--sans); font-size: 0.9375rem; }
   .left-msg { font-size: 1.5rem; font-style: italic; }

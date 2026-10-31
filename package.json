@@ -13,7 +13,8 @@
     "check": "astro check",
     "status": "node scripts/content-status.mjs",
     "og": "node scripts/make-og-default.mjs",
-    "field:dev": "node scripts/field-dev-server.mjs"
+    "field:dev": "node scripts/field-dev-server.mjs",
+    "test:field": "node scripts/field-test.mjs"
   },
   "engines": {
     "node": ">=20.3.0"

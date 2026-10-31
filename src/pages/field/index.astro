@@ -7,27 +7,44 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import site from '../../data/site.json';
 const field = site.field;
 ---
-<BaseLayout title={field.title} description={`${field.title} ${field.subtitle} ${site.concept}. ${site.byline}.`}>
-  <header class="page-head wrap field-head">
-    <span class="label">{site.concept}</span>
+<BaseLayout title={field.title} description={`${field.title} ${field.intro.replace(/\n/g, ' ')} A participatory artwork by ${site.byline}.`}>
+  <header class="page-head wrap field-head" data-credit={field.creditLines.join('\n')}>
+    <span class="label">{field.label}</span>
     <h1>{field.title}</h1>
-    <p class="sub">{field.subtitle}</p>
-    <p class="count" aria-live="polite"><span data-count>—</span> <span data-count-label>pieces so far.</span></p>
+    <p class="intro">{field.intro}</p>
+    <p class="count" aria-live="polite"><span data-count>—</span> <span data-count-label>pieces left so far.</span></p>
     <p class="actions">
-      <a class="btn primary" href="/abstract/">add yours <span aria-hidden="true">→</span></a>
-      <button type="button" class="text-btn" data-view-toggle aria-pressed="true">seen as one</button>
+      <a class="btn primary" href="/abstract/">{site.abstractRoom.title}</a>
     </p>
+    <div class="views" role="group" aria-label="How to see the field">
+      <button type="button" class="text-btn" data-view="one" aria-pressed="true">{field.seenAsOne}</button>
+      <button type="button" class="text-btn" data-view="each" aria-pressed="false">{field.oneByOne}</button>
+    </div>
+    <p class="contributors">{field.contributorNote} <a href="/field/terms/">participation terms</a></p>
   </header>
 
   <section class="focus wrap" data-focus hidden aria-labelledby="focus-h" tabindex="-1">
     <h2 id="focus-h" class="label" data-focus-title></h2>
     <div class="focus-art" data-focus-art></div>
+    <p class="label focus-by">a contribution by a visitor to {field.title} <span data-focus-state></span></p>
     <p class="focus-meta">
       <button type="button" class="text-btn" data-share>share</button>
-      <button type="button" class="text-btn" data-report>report</button>
+      <button type="button" class="text-btn" data-report aria-expanded="false" aria-controls="report-form">report</button>
       <button type="button" class="text-btn" data-remove hidden>remove my piece</button>
       <button type="button" class="text-btn" data-close>close</button>
     </p>
+    <form class="report-form" id="report-form" data-report-form hidden>
+      <fieldset>
+        <legend class="label">why should this piece be reviewed?</legend>
+        <label><input type="radio" name="reason" value="hate" required /> hateful</label>
+        <label><input type="radio" name="reason" value="threat" /> threatening</label>
+        <label><input type="radio" name="reason" value="personal information" /> someone’s personal information</label>
+        <label><input type="radio" name="reason" value="impersonation" /> impersonation</label>
+        <label><input type="radio" name="reason" value="spam" /> spam</label>
+        <label><input type="radio" name="reason" value="other" /> something else</label>
+      </fieldset>
+      <button type="submit" class="btn">send report</button>
+    </form>
     <p class="label" data-focus-status aria-live="polite"></p>
   </section>
 
@@ -43,7 +60,15 @@ const field = site.field;
 </BaseLayout>
 
 <style>
-  .field-head .sub { font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); font-style: italic; max-width: 36ch; margin: 1rem 0 0; color: var(--ink-soft); }
+  .field-head .intro { white-space: pre-line; font-size: clamp(1.3rem, 1rem + 1.1vw, 1.9rem); font-style: italic; line-height: 1.4; max-width: 40ch; margin: 1.25rem 0 0; color: var(--ink-soft); }
+  .views { display: flex; gap: 1.5rem; margin-top: 1.25rem; }
+  .views [aria-pressed='true'] { color: var(--ink); text-decoration-color: var(--oxide); }
+  .contributors { margin-top: 1.5rem; max-width: 46rem; font-family: var(--sans); font-size: 0.875rem; color: var(--slate); }
+  .focus-by { margin: 0.75rem 0 0; }
+  .report-form { margin-top: 1rem; max-width: 32rem; }
+  .report-form[hidden] { display: none; }
+  .report-form fieldset { border: 0; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.4rem; font-family: var(--sans); font-size: 0.9375rem; }
+  .report-form legend { margin-bottom: 0.5rem; }
   .count { margin: 2rem 0 0; font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem); }
   .count [data-count] { color: var(--oxide); font-variant-numeric: lining-nums tabular-nums; }
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: 1.5rem; }
@@ -62,7 +87,7 @@ const field = site.field;
     cursor: zoom-in;
     color: var(--ink);
   }
-  .field :global(.tile .piece-svg) { width: 100%; height: 100%; display: block; }
+  .field :global(.tile .piece-svg) { width: 100%; height: 100%; display: block; object-fit: contain; }
   .field :global(.tile:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; position: relative; z-index: 1; }
   .field :global(.cap) { display: none; }
 

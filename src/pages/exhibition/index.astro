@@ -113,8 +113,6 @@ const isFirst = () => { const f = firstImage; firstImage = false; return f; };
               )}
               <ul class="onward">
                 <li><a href="#top-of-exhibition">return to the beginning</a></li>
-                <li><a href="/abstract/">{site.abstractRoom.title}</a></li>
-                <li><a href="/field/">{site.field.title}</a></li>
                 <li><a href="/artwork/">the artwork archive</a></li>
                 <li><a href="/writing/">writing</a></li>
                 <li><a href="/">leave the exhibition</a></li>
@@ -130,6 +128,18 @@ const isFirst = () => { const f = firstImage; firstImage = false; return f; };
       </section>
     );
   })}
+
+  {site.field.open && (
+    <section class="participation wrap" aria-labelledby="participation-h" data-reveal>
+      <p class="label">{site.field.label}</p>
+      <h2 id="participation-h">{site.field.title}</h2>
+      <p class="inv">{site.field.invitation}</p>
+      <p class="part-actions">
+        <a class="btn primary" href="/abstract/">{site.abstractRoom.title}</a>
+        <a class="text-btn" href="/field/">see the field</a>
+      </p>
+    </section>
+  )}
 
   <nav class="guide" aria-label="Exhibition guide" data-guide>
     <a class="g-step g-prev" href="#top-of-exhibition" data-guide-prev aria-label="Previous movement"><span aria-hidden="true">←</span></a>
@@ -229,6 +239,18 @@ const isFirst = () => { const f = firstImage; firstImage = false; return f; };
   .mv-pager a { text-decoration: none; display: grid; gap: 0.2rem; font-size: 1.125rem; }
   .mv-pager a:hover { color: var(--oxide); }
   .mv-pager .next { text-align: right; }
+  @media (min-width: 64em) { :global(body.has-guide:not(.guide-hidden)) .mv-pager { padding-right: 5rem; } }
+
+  /* The participation room: after the paintings, set apart from them. */
+  .participation {
+    margin-top: var(--space-5);
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--rule);
+    max-width: 60rem;
+  }
+  .participation h2 { font-size: clamp(2.5rem, 1.5rem + 4vw, 5rem); margin-top: 1rem; }
+  .participation .inv { white-space: pre-line; font-style: italic; font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); line-height: 1.4; max-width: 40ch; color: var(--ink-soft); margin-top: 1rem; }
+  .part-actions { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: center; margin-top: 1.5rem; }
 
   /* ----- the guide: a quiet progress indicator, fully optional ----- */
   .guide {

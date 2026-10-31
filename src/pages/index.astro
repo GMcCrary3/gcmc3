@@ -77,21 +77,18 @@ const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
     </ol>
   </section>
 
-  <section class="abstract-invite wrap" aria-labelledby="abstract-h">
-    <div class="section-head">
-      <h2 id="abstract-h">a space of your own</h2>
-    </div>
-    <a class="invite" href="/abstract/" data-reveal>
-      <span class="t">{site.abstractRoom.title}</span>
-      <span class="label">{site.abstractRoom.prompt}</span>
-    </a>
-    {site.field.open && (
+  {site.field.open && (
+    <section class="participation wrap" aria-labelledby="participation-h">
+      <div class="section-head">
+        <h2 id="participation-h">{site.field.label}</h2>
+      </div>
       <a class="invite" href="/field/" data-reveal>
         <span class="t">{site.field.title}</span>
-        <span class="label">{site.field.subtitle}</span>
+        <span class="inv">{site.field.invitation}</span>
       </a>
-    )}
-  </section>
+      <p class="label"><a href="/abstract/">{site.abstractRoom.title}</a></p>
+    </section>
+  )}
 
   {books.length > 0 && (
     <section class="writing wrap" aria-labelledby="writing-h">
@@ -202,10 +199,12 @@ const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
   .mv-list .t { font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.75rem); line-height: 1.1; }
   .mv-list a:hover .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 
-  .abstract-invite { padding-top: var(--space-5); }
-  .invite { display: grid; gap: 0.75rem; text-decoration: none; padding-block: 1rem; border-bottom: 1px solid var(--rule); }
-  .invite .t { font-size: clamp(2rem, 1.3rem + 3vw, 4.25rem); line-height: 1.05; font-style: italic; }
+  .participation { padding-top: var(--space-5); }
+  .invite { display: grid; gap: 0.9rem; text-decoration: none; padding-block: 1rem 1.5rem; }
+  .invite .t { font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4.75rem); line-height: 1.05; }
+  .invite .inv { white-space: pre-line; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); font-style: italic; color: var(--ink-soft); max-width: 40ch; line-height: 1.4; }
   .invite:hover .t { color: var(--oxide); }
+  .participation .label a { text-decoration: none; font-size: 0.875rem; }
 
   .writing { padding-top: var(--space-5); }
   .book-list { list-style: none; margin: 0; padding: 0; }

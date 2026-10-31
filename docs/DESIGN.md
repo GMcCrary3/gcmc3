@@ -37,18 +37,18 @@ change is a visitor action. It works fully by keyboard, announces changes to scr
 readers, and respects reduced motion. Nothing typed there is sent or stored.
 
 ## the field.
-The collective work. Anyone can abstract their own concrete and choose to leave it for
-others; every piece joins one growing surface. *Seen as one*, the pieces meet edge to edge
-on a single ground. *One by one*, they are spaced and numbered. Each piece can be opened,
-shared by link (or, on phones, shared with its image), reported, or removed by the person
-who left it.
+*abstractly concrete / participation.* A participatory artwork that sits after the
+paintings: at the end of the exhibition and on the homepage, below the movements, never
+competing with the work. Visitors abstract their own concrete and may leave it for others.
+*seen as one.* shows every contribution edge to edge on one ground; *one by one.* spaces and
+numbers them. No claim is made about its size or records; it simply grows.
 
-- Free and anonymous: no accounts, and nothing about the visitor is stored.
-- Every saved or shared image carries the credit line
-  *abstractly concrete · giles c mccrary iii · gilesmccrary.com/field*.
-- Words are screened automatically for offensive language, links, and contact details;
-  reports and the artist's moderation handle the rest.
-- Leaving a piece is always a deliberate, explained choice; nothing is collected silently.
+- giles c mccrary iii is the originating artist; visitors are contributors. The field page,
+  the enlarged view ("a contribution by a visitor"), the terms, and every shared image say so.
+- Shared images carry the credit band *abstractly concrete / a participatory artwork by
+  giles c mccrary iii / gilesmccrary.com/field*, plus "made by a visitor".
+- Display and export use one drawing routine, so a shared image matches the stored piece.
+- Consent is explicit and recorded (terms version); moderation is before publication at launch.
 
 ## Images
 - Masters are kept unaltered in `src/assets/artwork/`. Web copies (AVIF/WebP/JPEG) are made

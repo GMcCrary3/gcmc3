@@ -54,36 +54,30 @@ The form is detected automatically by Netlify at build time (`data-netlify="true
 - Optional: put a public email in *settings → public contact email* to show a direct
   address as well.
 
-## The field (collective work)
+## The field (participatory artwork)
 
 The field runs on Netlify Functions and Netlify Blobs: no other service or account is
-needed. Both deploy automatically with the site.
+needed. See **docs/FIELD-OPERATIONS.md** for consent, moderation, deletion and failure
+behaviour, and **docs/LAUNCH-CHECKLIST.md** for the order of deployment and verification.
 
-1. **Set the moderation key.** In Netlify: *Site configuration → Environment variables →
-   Add a variable*: `FIELD_ADMIN_TOKEN` = a long random passphrase (at least 16 characters;
-   a password manager can generate one). Redeploy. Keep it private.
-2. **Moderate** at `https://gilesmccrary.com/field/moderate/` with that key. *Needs review*
-   lists reported pieces (and, under pre-moderation, everything waiting). *Show* or *hide*
-   each one.
-3. **Settings** (*settings → the field* in the editor):
-   - *open for new pieces*: pause new contributions at any time; the field stays visible.
-   - *moderation*: "post" (pieces appear at once; three reports hide a piece until reviewed)
-     or "pre" (every piece waits for approval).
+- **Moderation key:** set `FIELD_ADMIN_TOKEN` (32+ random characters) in Netlify's
+  environment variables. Moderate at `/field/moderate/`.
+- **Separate test storage:** deploy previews and branch deploys use the store
+  `field-preview` (set in `netlify.toml`), so testing never touches the real field.
+- **Scheduled filing** (`field-file`) runs once a minute, on the published production
+  deploy only. On previews, use "file waiting pieces now" on the moderation page.
+- **Settings** (*settings → the field*): open/closed, pre- or post-moderation, wording,
+  terms version, credit lines.
+- **Capacity:** leaving a piece never contends with other visitors; filing handles about
+  36,000 pieces an hour; reads are cached briefly at the edge. Watch *Netlify → Usage*; a
+  sustained surge may need a paid plan. Close the field to new pieces at any time without
+  losing anything.
 
-How it holds up if it spreads:
-- Leaving a piece writes only keys unique to that piece, so simultaneous visitors never
-  collide. A scheduled function files new pieces into numbered pages once a minute
-  (about 36,000 an hour; any backlog simply waits its turn and is still shown at once).
-- Reads are cached briefly at Netlify's edge, and each request reads at most one page of
-  100 pieces.
-- Netlify limits each visitor to 8 submissions a minute.
-- Words are screened automatically for offensive language, links, emails and phone numbers.
-- Watch usage under *Netlify → Usage*. The free plan includes generous function and blob
-  allowances; a sustained viral spike may need a paid plan. You can close the field to new
-  pieces at any moment without losing anything.
-
-Locally: `npm run build && npm run field:dev` runs the whole site with the field at
-http://localhost:8888 (moderation key `local-dev-moderation-token`; data in `.field-data/`).
+Locally:
+- `npm run test:field`: the automated test suite (no deployment needed).
+- `npm run build && npm run field:dev`: the whole site with the field at
+  http://localhost:8888 (moderation key `local-dev-moderation-token-0123456789abcdef`).
+- `node scripts/field-verify.mjs <url> <key>`: verification against a deployed site.
 
 ## Analytics
 

@@ -16,7 +16,7 @@ type Glyph = {
   el: HTMLButtonElement;
 };
 
-import { api, errorMessage, pieceUrl, rememberMine, share } from './field-render';
+import { api, compositionImage, contributionNote, errorMessage, pieceUrl, rememberMine, share } from './field-render';
 
 const form = document.querySelector<HTMLFormElement>('[data-name-form]');
 const wrap = document.querySelector<HTMLElement>('[data-field-wrap]');
@@ -200,45 +200,15 @@ if (form && wrap && field && remains && live) {
     },
   };
 
-  // Draw the composition as an image, fresh onto a canvas.
-  async function renderPng(): Promise<Blob | null> {
-    await document.fonts.ready;
-    const rect = field!.getBoundingClientRect();
-    const scale = 1600 / rect.width;
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(rect.width * scale);
-    canvas.height = Math.round(rect.height * scale);
-    const ctx = canvas.getContext('2d')!;
-    const css = getComputedStyle(document.documentElement);
-    ctx.fillStyle = css.getPropertyValue('--ivory-deep').trim() || '#e9e4d8';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const fsPx = (base / 100) * canvas.width;
-    for (const g of glyphs) {
-      const cs = getComputedStyle(g.el);
-      ctx.save();
-      ctx.translate((g.x / 100) * canvas.width, (g.y / 100) * canvas.height);
-      ctx.rotate((g.r * Math.PI) / 180);
-      ctx.scale(g.s, g.s);
-      ctx.font = `${cs.fontWeight} ${fsPx}px ${cs.fontFamily}`;
-      ctx.fillStyle = cs.color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(g.ch, 0, 0);
-      ctx.restore();
-    }
-    if (!glyphs.length) {
-      ctx.font = `italic 400 ${canvas.width * 0.035}px ${getComputedStyle(remains!).fontFamily}`;
-      ctx.fillStyle = css.getPropertyValue('--slate').trim() || '#53616d';
-      ctx.textAlign = 'center';
-      ctx.fillText(remains!.textContent ?? '', canvas.width / 2, canvas.height / 2);
-    }
-    ctx.font = `400 ${canvas.width * 0.012}px ${css.getPropertyValue('--sans')}`;
-    ctx.fillStyle = css.getPropertyValue('--slate').trim() || '#53616d';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText(credit, canvas.width * 0.025, canvas.height * 0.97);
-    return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'));
-  }
+  /** The composition exactly as it is submitted and stored. */
+  const composition = () => ({
+    aspect: (field!.clientWidth >= field!.clientHeight ? 'landscape' : 'portrait') as 'landscape' | 'portrait',
+    base,
+    glyphs: glyphs.map((g) => ({ c: g.ch, x: g.x, y: g.y, r: g.r, s: g.s, f: (g.sans ? 1 : 0) as 0 | 1, t: (g.slate ? 1 : 0) as 0 | 1 })),
+  });
+  const credit = (wrap.closest('[data-credit]') as HTMLElement | null)?.dataset.credit?.split('\n') ?? [];
+  let leftN = 0;
+  const renderPng = () => compositionImage(composition(), credit, contributionNote(leftN));
 
   const fileName = () => {
     const safe = word.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'concrete';
@@ -261,7 +231,6 @@ if (form && wrap && field && remains && live) {
   }
 
   /* ---------- leaving it for others ---------- */
-  const credit = document.querySelector<HTMLElement>('[data-credit]')?.dataset.credit ?? 'abstractly concrete · gilesmccrary.com';
   const leaveBtn = wrap.querySelector<HTMLButtonElement>('[data-act="leave"]');
   const leavePanel = wrap.querySelector<HTMLElement>('[data-leave-panel]');
   const leftPanel = wrap.querySelector<HTMLElement>('[data-left-panel]');
@@ -278,6 +247,7 @@ if (form && wrap && field && remains && live) {
     leftPanel.hidden = true;
     leaveError.hidden = true;
     leftId = '';
+    leftN = 0;
   };
 
   async function confirmLeave() {
@@ -287,14 +257,16 @@ if (form && wrap && field && remains && live) {
       leaveError.hidden = false;
       return;
     }
+    const agree = leavePanel.querySelector<HTMLInputElement>('[data-agree]');
+    if (agree && !agree.checked) {
+      leaveError.textContent = 'please read and agree to the participation terms first.';
+      leaveError.hidden = false;
+      agree.focus();
+      return;
+    }
     const confirmBtn = leavePanel.querySelector<HTMLButtonElement>('[data-act="confirm-leave"]')!;
     confirmBtn.disabled = true;
-    const body = {
-      text: word,
-      aspect: field!.clientWidth >= field!.clientHeight ? 'landscape' : 'portrait',
-      base,
-      glyphs: glyphs.map((g) => ({ c: g.ch, x: g.x, y: g.y, r: g.r, s: g.s, f: g.sans ? 1 : 0, t: g.slate ? 1 : 0 })),
-    };
+    const body = { text: word, ...composition(), agree: agree?.value ?? '' };
     const res = await api<{ id?: string; token?: string; status?: string; error?: string }>('/api/field/leave', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -310,7 +282,8 @@ if (form && wrap && field && remains && live) {
     if (res.data.token) rememberMine(leftId, res.data.token);
     leftLink.href = `/field/?piece=${encodeURIComponent(leftId)}`;
     if (res.data.status === 'pending') {
-      leftPanel.querySelector('.left-msg')!.textContent = 'left. it will appear in the field once it has been seen.';
+      leftPanel.querySelector('.left-msg')!.textContent =
+        'left. it will appear in the field once it has been reviewed. you can see it, and remove it, from its link on this device.';
     }
     leavePanel.hidden = true;
     leaveBtn.hidden = true;
