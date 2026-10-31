@@ -42,13 +42,16 @@ if (image && (usableWidths.length === 0 || usableWidths[usableWidths.length - 1]
   usableWidths.push(Math.min(image.width, widths[widths.length - 1]));
 }
 const fileName = src?.split('/').pop();
+// A file smaller than the smallest requested size is served at its natural
+// size (no srcset), so pages that size images by content never upscale it.
+const small = image ? image.width <= widths[0] : false;
+const sizing = small ? { width: image!.width, height: image!.height } : { widths: [...new Set(usableWidths)], sizes };
 ---
 {image ? (
   <Picture
     src={image}
     alt={alt}
-    widths={[...new Set(usableWidths)]}
-    sizes={sizes}
+    {...sizing}
     formats={['avif', 'webp']}
     fallbackFormat="jpg"
     quality={quality}
