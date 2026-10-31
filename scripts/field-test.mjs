@@ -39,7 +39,11 @@ const composition = (word = 'home', extra = {}) => ({
 });
 const results = [];
 const test = async (name, fn) => {
-  try { await fn(); results.push(['✓', name]); } catch (e) { results.push(['✗', name, e.message]); }
+  try { await fn(); results.push(['✓', name]); } catch (e) {
+    // Keep the full detail of any failure, so an intermittent one can be diagnosed.
+    results.push(['✗', name, e.message]);
+    console.error(`\n--- FAILED: ${name}\n${e.stack ?? e}\n`);
+  }
 };
 const fileAll = async () => { let n; do { n = await lib.fileWaiting(lib.store()); } while (n > 0); };
 const allFiled = async () => {
@@ -161,7 +165,8 @@ await test('filing survives being interrupted at any step (no loss, no duplicate
 
 await test('a moderation decision made during filing is kept', async () => {
   const s = lib.store();
-  for (let round = 0; round < 20; round++) {
+  const rounds = Number(process.env.FIELD_RACE_ROUNDS) || 20;
+  for (let round = 0; round < rounds; round++) {
     const r = await call(leave, '/api/field/leave', { method: 'POST', body: composition(`race${round}`) });
     await Promise.all([
       lib.fileWaiting(s),

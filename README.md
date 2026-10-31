@@ -70,6 +70,7 @@ npm run test:field   # automated tests for the field (consent, moderation, concu
 ## More
 
 - [docs/ADDING-WORK.md](docs/ADDING-WORK.md): the simple process for adding new artwork and writing
+- [docs/NETLIFY-SETUP.md](docs/NETLIFY-SETUP.md): connecting Netlify for the private preview, step by step
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): Netlify, custom domain, the editor login, the contact form, analytics
 - [docs/DESIGN.md](docs/DESIGN.md): design decisions and editorial rules built into the code
 

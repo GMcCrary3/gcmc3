@@ -1,12 +1,16 @@
 /**
- * Prelaunch privacy gate. While the Netlify environment variable
- * PRELAUNCH_PASSWORD is set, every request to the site (pages, images, the
- * field's API, the editor) requires that password via the browser's standard
- * sign-in prompt (HTTP Basic authentication; any username). Remove the
- * variable at launch and the gate disappears.
+ * Prelaunch privacy gate — closed by default.
  *
- * Search-engine exclusion (the `prelaunch` setting) only asks crawlers to stay
- * away; this gate actually restricts access.
+ *  - PUBLIC_LAUNCH = "true"     → the site is public (set only at an approved launch).
+ *  - PRELAUNCH_PASSWORD is set  → every request (pages, images, the field's API,
+ *                                 the editor) needs that password through the
+ *                                 browser's standard sign-in box (any username).
+ *  - neither is set             → nobody gets in ("not public yet").
+ *
+ * So a deploy that happens before the variables are configured is closed, not
+ * public. Search-engine exclusion (the `prelaunch` setting) only asks crawlers
+ * to stay away; this gate actually restricts access. Nothing here logs or
+ * echoes the password.
  *
  * Runs on Netlify Edge Functions (Deno). Not part of the Astro type check.
  */
@@ -25,9 +29,22 @@ async function sameSecret(a: string, b: string) {
   return diff === 0;
 }
 
+const closed = (status: number, body: string, extra: Record<string, string> = {}) =>
+  new Response(body, {
+    status,
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+      'x-robots-tag': 'noindex, nofollow',
+      ...extra,
+    },
+  });
+
 export default async (req: Request, context: Context) => {
+  if (Netlify.env.get('PUBLIC_LAUNCH') === 'true') return context.next();
+
   const password = Netlify.env.get('PRELAUNCH_PASSWORD');
-  if (!password) return context.next();
+  if (!password) return closed(503, 'GilesMcCrary.com is not public yet.');
 
   const header = req.headers.get('authorization') ?? '';
   if (header.startsWith('Basic ')) {
@@ -45,14 +62,8 @@ export default async (req: Request, context: Context) => {
       /* malformed header: fall through */
     }
   }
-  return new Response('GilesMcCrary.com is not public yet.', {
-    status: 401,
-    headers: {
-      'www-authenticate': 'Basic realm="GilesMcCrary.com private preview", charset="UTF-8"',
-      'content-type': 'text/plain; charset=utf-8',
-      'cache-control': 'no-store',
-      'x-robots-tag': 'noindex, nofollow',
-    },
+  return closed(401, 'GilesMcCrary.com is not public yet.', {
+    'www-authenticate': 'Basic realm="GilesMcCrary.com private preview", charset="UTF-8"',
   });
 };
 

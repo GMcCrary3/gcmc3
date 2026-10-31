@@ -14,14 +14,17 @@ BlobsServer.generateETag = async (filePath) => {
   }
 };
 
+// The ETag must describe exactly the bytes returned. (Reading the file a second
+// time to hash it could pair old content with a newer ETag if a write landed in
+// between, letting a stale read-modify-write overwrite newer data.)
 const originalGet = BlobsServer.prototype.get;
 BlobsServer.prototype.get = async function (req) {
   const res = await originalGet.call(this, req);
   if (res.status !== 200) return res;
-  const { dataPath } = this.getLocalPaths(new URL(req.url ?? '', this.address));
+  const body = Buffer.from(await res.arrayBuffer());
   const headers = new Headers(res.headers);
-  if (dataPath) headers.set('etag', await BlobsServer.generateETag(dataPath));
-  return new Response(res.body, { status: res.status, headers });
+  headers.set('etag', `"${createHash('sha256').update(body).digest('hex')}"`);
+  return new Response(body, { status: res.status, headers });
 };
 
 let queue = Promise.resolve();

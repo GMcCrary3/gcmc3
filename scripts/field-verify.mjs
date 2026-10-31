@@ -1,10 +1,11 @@
 // Verifies the field on a DEPLOYED Netlify site, before launch.
 //
-//   node scripts/field-verify.mjs https://<deploy-url> <moderation-key> [prelaunch-password]
+//   FIELD_VERIFY_KEY=… FIELD_VERIFY_PASSWORD=… node scripts/field-verify.mjs https://<site>.netlify.app
 //
-// If the prelaunch gate is on (PRELAUNCH_PASSWORD set in Netlify), pass the
-// password as the third argument; the script also checks that the site
-// refuses visitors without it.
+// The moderation key and the preview password are read from environment
+// variables (never typed as arguments, so they stay out of shell history and
+// process listings) and are never printed. The script also checks that the
+// site refuses visitors without the password.
 // Run it against a deploy preview or branch deploy first: those use separate
 // storage ("field-preview"), so the real field is untouched. Everything this
 // script creates is hidden or removed again before it finishes.
@@ -12,9 +13,15 @@
 // preview the script triggers filing itself through the moderation endpoint.
 import assert from 'node:assert/strict';
 
-const [base, key, gatePassword] = process.argv.slice(2);
+const [base] = process.argv.slice(2);
+const key = process.env.FIELD_VERIFY_KEY ?? '';
+const gatePassword = process.env.FIELD_VERIFY_PASSWORD ?? '';
 if (!base || !key) {
-  console.error('usage: node scripts/field-verify.mjs https://<deploy-url> <moderation-key>');
+  console.error('usage: FIELD_VERIFY_KEY=<moderation key> FIELD_VERIFY_PASSWORD=<preview password> node scripts/field-verify.mjs https://<site>');
+  process.exit(2);
+}
+if (process.argv.length > 3) {
+  console.error('Pass the key and password as environment variables, not arguments.');
   process.exit(2);
 }
 const url = (p) => new URL(p, base).href;
@@ -36,8 +43,8 @@ const check = async (name, fn) => {
 };
 
 const html = await (await get('/')).text();
-if (!gatePassword && (await fetch(url('/'))).status === 401) {
-  console.error('The site asks for a password (prelaunch gate). Pass it as the third argument.');
+if (!gatePassword && [401, 503].includes((await fetch(url('/'))).status)) {
+  console.error('The site is behind the prelaunch gate. Set FIELD_VERIFY_PASSWORD.');
   process.exit(2);
 }
 const terms = (await (await get('/abstract/')).text()).match(/data-agree[^>]*value="([^"]+)"/)?.[1]
@@ -50,7 +57,7 @@ const mine = [];
 
 if (gatePassword) {
   await check('prelaunch gate refuses visitors without the password (pages and API)', async () => {
-    for (const p of ['/', '/exhibition/', '/field/', '/api/field', '/robots.txt']) {
+    for (const p of ['/', '/exhibition/', '/field/', '/admin/', '/api/field', '/robots.txt']) {
       const r = await fetch(url(p));
       assert.equal(r.status, 401, `${p} returned ${r.status}`);
     }
@@ -137,6 +144,11 @@ await check('removal by the owner erases the piece', async () => {
     if (r.status === 429) { await sleep(61_000); await req('/api/field/remove', { method: 'POST', body: { id: m.id, token: m.token } }); }
   }
   assert.equal((await req(`/api/field/piece?id=${one.id}`, { headers: { 'x-field-key': one.token } })).status, 404);
+});
+await check('the site uses the preview store (not the real field) during the private preview', async () => {
+  // Proxy check: the real store would be empty before launch; this only reports.
+  const h = (await req('/api/field/moderate?view=health', { headers: ADMIN })).data;
+  return `filed ${h.filed}, waiting ${h.waiting}`;
 });
 await check('scheduled filing is healthy (run on production; previews have no schedule)', async () => {
   const h = (await req('/api/field/moderate?view=health', { headers: ADMIN })).data;

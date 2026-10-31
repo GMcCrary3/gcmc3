@@ -20,9 +20,11 @@ const needsReview = (p: Piece) => p.status === 'pending' || (p.status === 'visib
 
 export default async (req: Request) => {
   const secret = process.env.FIELD_ADMIN_TOKEN ?? '';
+  // Refuse the local development key if it is ever configured on Netlify by mistake.
+  const isDevKey = /^(local-dev|test-)/.test(secret) && !process.env.FIELD_BLOBS_EDGE_URL;
   // Its own header, so it never collides with the prelaunch gate's Basic sign-in.
   const given = req.headers.get('x-field-admin-key') ?? '';
-  if (secret.length < 32 || !safeEqual(given, secret)) {
+  if (secret.length < 32 || isDevKey || !safeEqual(given, secret)) {
     await new Promise((r) => setTimeout(r, 400)); // slow down guessing
     return json({ error: 'not allowed' }, 401);
   }

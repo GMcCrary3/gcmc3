@@ -5,7 +5,8 @@
 backend:
   name: github
   repo: GMcCrary3/gcmc3
-  branch: main
+  # Private preview deploys from this branch; change to main if one is created later.
+  branch: claude/gilesmccrary-website-2ingnt
   base_url: https://api.netlify.com   # Netlify provides the GitHub sign-in
   commit_messages:
     create: "add {{collection}} “{{slug}}”"

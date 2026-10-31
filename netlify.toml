@@ -5,8 +5,12 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# The field: deploy previews and branch deploys use their own storage, so
-# testing never touches the real field. (Production uses the store "field".)
+# The field's storage. During the private preview, every deploy (including the
+# production deploy of claude/gilesmccrary-website-2ingnt) uses the test store
+# "field-preview", so verification pieces never reach the real field.
+# AT LAUNCH (and only then): change the production value below to "field".
+[context.production.environment]
+  FIELD_STORE = "field-preview"
 [context.deploy-preview.environment]
   FIELD_STORE = "field-preview"
 [context.branch-deploy.environment]

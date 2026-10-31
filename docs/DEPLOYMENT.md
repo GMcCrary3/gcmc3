@@ -4,11 +4,15 @@ The site is a static build (`dist/`) hosted on Netlify. Netlify supplies HTTPS, 
 custom domain, the contact-form inbox with spam filtering, and the GitHub sign-in for
 the editor.
 
+> **Private preview first.** Follow **docs/NETLIFY-SETUP.md** for the exact steps. The
+> sections below are the reference behind them.
+
 ## 1. Create the Netlify site
 
 1. Sign in at netlify.com → **Add new site → Import an existing project → GitHub** →
    choose `GMcCrary3/gcmc3`.
-2. Branch to deploy: `main`. Build settings come from `netlify.toml`
+2. Branch to deploy: `claude/gilesmccrary-website-2ingnt` for the private preview (there is
+   no `main` yet). Build settings come from `netlify.toml`
    (`npm run build`, publish `dist`, Node 22). Click **Deploy**.
 3. Every push to `main` deploys. Every pull request gets its own **deploy preview** URL,
    which is the working preview to review changes before they go live.
@@ -42,7 +46,8 @@ If the content should be published from a branch other than `main`, change `bran
 
 ## 4. Contact form
 
-The form is detected automatically by Netlify at build time (`data-netlify="true"`).
+Turn on **Project configuration → Forms → Enable form detection** (newer Netlify projects
+have it off), then redeploy. Netlify then detects the form at build time (`data-netlify="true"`).
 
 - **Where messages go:** Netlify → **Forms → contact**. Set up email notifications under
   **Forms → Form notifications → Add notification → Email** to the artist's address.
@@ -57,14 +62,17 @@ The form is detected automatically by Netlify at build time (`data-netlify="true
 ## Prelaunch privacy gate
 
 Search-engine exclusion (`prelaunch` in settings) only asks crawlers to stay away; it does
-not make the site private. To restrict access, set the Netlify environment variable
-**`PRELAUNCH_PASSWORD`** (Site configuration → Environment variables) and redeploy. Every
-request (pages, images, the field's API, the editor) then requires that password through
-the browser's standard sign-in box (any username). This runs as a Netlify Edge Function
-(`netlify/edge-functions/prelaunch-gate.ts`) and works on the free plan. To launch, delete
-the variable and redeploy. Test: `npm run test:gate`.
+not make the site private. The gate (`netlify/edge-functions/prelaunch-gate.ts`) does, and
+it is **closed by default**:
 
-(Netlify's built-in site password protection, on paid plans, is an alternative.)
+| Netlify environment | result |
+|---|---|
+| nothing set | nobody gets in ("not public yet", 503) |
+| `PRELAUNCH_PASSWORD` set | every request (pages, images, the field's API, the editor) needs the password via the browser's sign-in box |
+| `PUBLIC_LAUNCH` = `true` | public (only at an approved launch) |
+
+Set the variables for **all deploy contexts**, so editor-created deploy previews are gated
+the same way. Works on the free plan. Test: `npm run test:gate`.
 
 ## The field (participatory artwork)
 
@@ -74,8 +82,9 @@ behaviour, and **docs/LAUNCH-CHECKLIST.md** for the order of deployment and veri
 
 - **Moderation key:** set `FIELD_ADMIN_TOKEN` (32+ random characters) in Netlify's
   environment variables. Moderate at `/field/moderate/`.
-- **Separate test storage:** deploy previews and branch deploys use the store
-  `field-preview` (set in `netlify.toml`), so testing never touches the real field.
+- **Separate test storage:** during the private preview every deploy, production
+  included, uses the store `field-preview` (set in `netlify.toml`), so verification never
+  touches the real field. At launch, change the production value to `field`.
 - **Scheduled filing** (`field-file`) runs once a minute, on the published production
   deploy only. On previews, use "file waiting pieces now" on the moderation page.
 - **Settings** (*settings → the field*): open/closed, pre- or post-moderation, wording,
@@ -89,7 +98,8 @@ Locally:
 - `npm run test:field`: the automated test suite (no deployment needed).
 - `npm run build && npm run field:dev`: the whole site with the field at
   http://localhost:8888 (moderation key `local-dev-moderation-token-0123456789abcdef`).
-- `node scripts/field-verify.mjs <url> <key>`: verification against a deployed site.
+- `FIELD_VERIFY_KEY=… FIELD_VERIFY_PASSWORD=… node scripts/field-verify.mjs <url>`:
+  verification against a deployed site (secrets from the environment, never printed).
 
 ## Analytics
 
