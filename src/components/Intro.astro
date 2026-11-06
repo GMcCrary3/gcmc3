@@ -4,6 +4,7 @@
  * while under review, only on the private preview (prelaunch). Shown once per
  * browser session; add ?intro to the address to see it again.
  */
+import '@fontsource/homemade-apple/latin-400.css';
 import poem from '../data/intro-poem.json';
 import site from '../data/site.json';
 const cfg = site.intro;
@@ -66,6 +67,7 @@ for (const l of poem.lines) {
   :global(html.js:not(.intro-seen)) .intro[hidden] { display: grid; }
 
   .intro-stage {
+    position: relative;
     align-self: center;
     justify-self: center;
     width: min(100%, 38rem);
@@ -78,6 +80,23 @@ for (const l of poem.lines) {
   .intro-stage :global(.intro-title) { font-size: 1.5em; margin: 0 0 1.1em; letter-spacing: 0.01em; }
   .intro-stage :global(.intro-stanza) { margin: 0 0 0.85em; }
   .intro-stage :global(.l) { display: block; }
+  /* The last line: written by hand, in red, across the poem. */
+  .intro-stage :global(.intro-final) {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%) rotate(-7deg);
+    width: max-content;
+    max-width: min(92vw, 70rem);
+    margin: 0;
+    font-family: 'Homemade Apple', 'Bradley Hand', 'Segoe Script', cursive;
+    font-size: clamp(2.6rem, 11vw, 5.75rem);
+    line-height: 1.5;
+    color: #d12f2f; /* 4.2:1 on black */
+    text-align: center;
+    pointer-events: none;
+  }
+  .intro-stage :global(.intro-final .l) { display: inline; }
   .intro-stage :global(.c) { opacity: 0; }
   .intro-stage :global(.c.on) { opacity: 1; }
 

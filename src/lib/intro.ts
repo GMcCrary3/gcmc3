@@ -57,7 +57,11 @@ export function startIntro(root: HTMLElement, poem: IntroPoem, cfg: IntroConfig,
   stanza.className = 'intro-stanza';
   stage.append(stanza);
   let pending = -1; // -1: first line after the title
-  for (const line of poem.lines) {
+  // The final line is written separately: large, red, by hand, across the poem.
+  const lastIndex = poem.lines.map((l) => l.trim() !== '').lastIndexOf(true);
+  const final = document.createElement('p');
+  final.className = 'intro-final';
+  poem.lines.forEach((line, i) => {
     if (!line.trim()) {
       if (stanza.childNodes.length) {
         stanza = document.createElement('p');
@@ -65,12 +69,14 @@ export function startIntro(root: HTMLElement, poem: IntroPoem, cfg: IntroConfig,
         stage.append(stanza);
       }
       pending = STANZA_GAP;
-      continue;
+      return;
     }
-    addLine(stanza, line, 'l', pending === -1 ? -1 : pending || LINE_GAP);
+    addLine(i === lastIndex ? final : stanza, line, 'l', pending === -1 ? -1 : pending || LINE_GAP);
     pending = 0;
-  }
-  const lastLine = stanza.lastElementChild as HTMLElement | null;
+  });
+  if (!stanza.childNodes.length) stanza.remove();
+  stage.append(final);
+  const lastLine = final;
 
   /* ---- schedule: when each character appears ---- */
   const typingEnd = cfg.totalSeconds * 1000 - cfg.holdEndSeconds * 1000;
@@ -122,7 +128,7 @@ export function startIntro(root: HTMLElement, poem: IntroPoem, cfg: IntroConfig,
     reveal(chars.length);
     mode = 'hold';
     leaveAt = elapsed + holdMs;
-    lastLine?.classList.add('final');
+    lastLine.classList.add('written');
   };
 
   const frame = (now: number) => {
@@ -134,7 +140,7 @@ export function startIntro(root: HTMLElement, poem: IntroPoem, cfg: IntroConfig,
         let n = shown;
         while (n < chars.length && at[n] <= elapsed) n++;
         reveal(n);
-        if (shown === chars.length) { mode = 'hold'; lastLine?.classList.add('final'); }
+        if (shown === chars.length) { mode = 'hold'; lastLine.classList.add('written'); }
       }
       if (elapsed >= leaveAt) { leave(); return; }
     }
