@@ -48,7 +48,7 @@ Movement names are navigation labels, not titles for the paintings.
 - **kind**: poem, prose / essay, book, or publication (elsewhere).
 - **text**: paste the poem exactly. Every line break, blank line between stanzas, leading
   space (indent) and punctuation is kept as written. `*asterisks*` around words make italics.
-- **from the book**: links a poem or excerpt to *Beyond? Beyond: words for a captive audience*
+- **from the book**: links a poem or excerpt to *beyond? beyond: words for a captive audience*
   or *act iii*; the book's page then lists it.
 - **recorded reading**: optional audio file. It never plays by itself.
 - **links**: where to buy or read published editions.

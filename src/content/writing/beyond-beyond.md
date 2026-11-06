@@ -1,5 +1,5 @@
 ---
-title: "Beyond? Beyond: words for a captive audience"
+title: "beyond? beyond: words for a captive audience"
 kind: book
 subtitle: ""
 year: ""
