@@ -45,7 +45,8 @@ const types = {
 
 createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${port}`);
-  const fn = fns.find((f) => f.paths.includes(url.pathname) && f.methods.includes(req.method));
+  const matches = (p) => (p.endsWith('/*') ? url.pathname.startsWith(p.slice(0, -1)) : p === url.pathname);
+  const fn = fns.find((f) => f.paths.some(matches) && f.methods.includes(req.method));
   if (fn) {
     const chunks = [];
     for await (const c of req) chunks.push(c);

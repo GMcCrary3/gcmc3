@@ -19,8 +19,11 @@ export async function getArtworks() {
   return (await getCollection('artwork', visible)).sort(byRef);
 }
 
+/** Writing awaiting review is visible only while the whole site is private (prelaunch). */
+const reviewVisible = (e: { data: { review?: boolean } }) => !e.data.review || !isProd || site.prelaunch;
+
 export async function getWriting() {
-  const all = await getCollection('writing', visible);
+  const all = (await getCollection('writing', visible)).filter(reviewVisible);
   return all.sort((a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title));
 }
 

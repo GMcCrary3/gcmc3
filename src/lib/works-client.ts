@@ -52,7 +52,7 @@ export function load(project: string) {
 
 /** Wires up the contribution form. `onDraft` receives the unsent text as it changes. */
 export function setupForm(project: string, copy: Copy, onDraft: (t: string) => void, onPublished: () => void) {
-  const form = document.querySelector<HTMLFormElement>(`[data-works-form][data-project="${project}"]`);
+  const form = document.querySelector<HTMLFormElement>(`[data-works-form][data-project="${CSS.escape(project)}"]`);
   if (!form) return;
   const text = form.querySelector<HTMLTextAreaElement>('[data-text]')!;
   const count = form.querySelector<HTMLElement>('[data-count]')!;
@@ -118,13 +118,13 @@ export function setupForm(project: string, copy: Copy, onDraft: (t: string) => v
 
 /** "your contributions, on this device": status from the server, withdraw, ask for removal. */
 export async function renderMine(project: string) {
-  const box = document.querySelector<HTMLElement>(`[data-works-form][data-project="${project}"] ~ [data-mine]`);
+  const box = document.querySelector<HTMLElement>(`[data-works-form][data-project="${CSS.escape(project)}"] ~ [data-mine]`);
   const list = box?.querySelector<HTMLUListElement>('[data-mine-list]');
   const mine = readMine(project);
   if (!box || !list || !mine.length) return;
   box.hidden = false;
   const items = await Promise.all(mine.slice(-12).reverse().map(async (m) => {
-    const r = await api<{ status?: string; seq?: number | null }>(`/api/works/receipt?project=${project}&id=${m.id}`, { headers: { 'x-works-key': m.token } });
+    const r = await api<{ status?: string; seq?: number | null }>(`/api/works/receipt?project=${encodeURIComponent(project)}&id=${m.id}`, { headers: { 'x-works-key': m.token } });
     return { m, status: r.ok ? r.data.status ?? 'unknown' : 'unknown', seq: r.data.seq ?? null };
   }));
   list.replaceChildren(...items.map(({ m, status, seq }) => {

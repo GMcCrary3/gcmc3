@@ -28,9 +28,22 @@ export const PROJECTS = {
   'unfinished-sentence': 'sentence',
   'space-in-between-us': 'between',
 } as const;
-export type Slug = keyof typeof PROJECTS;
-export type Project = (typeof PROJECTS)[Slug];
-export const isSlug = (s: string): s is Slug => s in PROJECTS;
+/** A work: one of the two literary works, or the responses to one poem ("responses/<poem>"). */
+export type Slug = string;
+export type Project = string;
+export type Kind = 'sentence' | 'between' | 'responses';
+
+/** Only known works resolve: responses exist only for poems listed in settings. */
+export function resolve(slug: string, works = site.works): { project: Project; kind: Kind } | null {
+  if (slug in PROJECTS) {
+    const project = PROJECTS[slug as keyof typeof PROJECTS];
+    return { project, kind: project };
+  }
+  const m = /^responses\/([a-z0-9-]{1,80})$/.exec(slug);
+  if (m && works.responses.poems.includes(m[1])) return { project: `responses-${m[1]}`, kind: 'responses' };
+  return null;
+}
+export const isSlug = (s: string) => resolve(s) !== null;
 
 type Works = typeof site.works;
 export type Settings = {
@@ -50,6 +63,20 @@ export type Settings = {
 /** Settings come from src/data/site.json (editable in the site editor). */
 export function settings(p: Project, works: Works = site.works): Settings {
   const termsVersion = works.termsVersion;
+  if (p.startsWith('responses-')) {
+    const r = works.responses;
+    return {
+      open: r.open,
+      moderation: r.moderation === 'post' ? 'post' : 'pre',
+      every: null, // responses have no milestones and no artist turn
+      enforce: false,
+      acceptWhileAwaiting: true,
+      windowDays: null,
+      windowStartsAt: 'milestone',
+      maxChars: r.maxChars,
+      termsVersion,
+    };
+  }
   if (p === 'sentence') {
     const s = works.sentence;
     return {

@@ -166,6 +166,9 @@ collections:
           - { label: url, name: url, widget: string }
       - { label: order, name: order, widget: number, value_type: int, default: 100 }
       - { label: "hide (draft)", name: draft, widget: boolean, default: false, required: false }
+      - { label: "awaiting the artist's review (private preview only)", name: review, widget: boolean, default: false, required: false }
+      - { label: "source (book and pages; not shown)", name: source, widget: string, required: false }
+      - { label: "invite readers' responses", name: responses, widget: boolean, default: false, required: false, hint: "Also add the poem to settings → works → responses → poems." }
       - label: "text"
         name: body
         widget: text
@@ -395,6 +398,21 @@ collections:
                   - { label: "artist intervenes every … stanzas (3 or 5 under consideration; empty = undecided)", name: interventionEvery, widget: number, value_type: int, required: false }
                   - { label: "enforce the artist's turn (off until approved)", name: enforceArtistTurn, widget: boolean }
                   - { label: "technical length limit (characters)", name: maxChars, widget: number, value_type: int }
+              - label: "responses to poems"
+                name: responses
+                widget: object
+                fields:
+                  - { label: "open for responses", name: open, widget: boolean }
+                  - label: moderation
+                    name: moderation
+                    widget: select
+                    options:
+                      - { label: "read before publishing", value: pre }
+                      - { label: "publish at once (screened)", value: post }
+                  - { label: heading, name: heading, widget: string }
+                  - { label: prompt, name: prompt, widget: string }
+                  - { label: "technical length limit (characters)", name: maxChars, widget: number, value_type: int }
+                  - { label: "poems that invite responses", name: poems, widget: list, field: { label: poem, name: poem, widget: relation, collection: writing, value_field: "{{slug}}", search_fields: [title], display_fields: [title] } }
           - label: contact form
             name: contactForm
             widget: object

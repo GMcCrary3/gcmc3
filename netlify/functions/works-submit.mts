@@ -5,14 +5,15 @@
  */
 import type { Config } from '@netlify/functions';
 import { json, readBody } from './_lib/field.ts';
-import { PROJECTS, isSlug, settings, submit, worksStore } from './_lib/works.ts';
+import { resolve, settings, submit, worksStore } from './_lib/works.ts';
 
 export default async (req: Request) => {
   const body = await readBody(req);
   if (!body) return json({ error: 'invalid' }, 400);
   const slug = typeof body.project === 'string' ? body.project : '';
-  if (!isSlug(slug)) return json({ error: 'unknown' }, 404);
-  const p = PROJECTS[slug];
+  const work = resolve(slug);
+  if (!work) return json({ error: 'unknown' }, 404);
+  const p = work.project;
   try {
     const r = await submit(worksStore(p), p, settings(p), body);
     if (!r.ok) return json({ error: r.error }, r.status);

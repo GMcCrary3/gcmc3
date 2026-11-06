@@ -23,6 +23,7 @@ authority hovel i used to proudly call my home. back to a time where i lost
 innocence and gained responsibility. the first of many falls, i can feel almost
 happy in the knowledge that i tried. or at least i gave the impression of
 trying.
+
 you see, when it happened, when he went missing and i knew in my heart
 that it was for good this time, i had been there before. many many times
 before. but never all there, the time it sunk in with the bouncing of my
@@ -30,6 +31,7 @@ stomach into my head and oh how the ground began to tremble. bright
 light, utter sensation. i could even hear the shuffling of my guardian angels
 backpack as i ran towards the past hoping to find one last bastion of what
 once was. it was not there. he was not there.
+
 i knew then that to make it easy on myself i would have to retreat into the
 recent and try to forget the past. all those carefree nights of riding lions and
 wrapping the future in red bows with golden ends. big white house
@@ -45,13 +47,14 @@ yesterday exponentially squared. but the memory of that colour is one i
 shall take forward with me into my new understanding. into my new fire
 filled world. some say that spiritual rebirth is something that can only occur
 when you want it to. i am proof that it is not.
+
 sometimes i break my own rules. like now. returning to add to a memory
 that i thought was complete, always tacitly aware that you can never be too
-!77
 full up with the newness of what happened two lifetimes ago. i breathe in
 my own knowledge swimming in faint delusions of ego soaked grandeur.
 but nothing is ever the same these days. nothing can remain static when you
 really want it to. can it?
+
 broken paragraphs are a new thing to look into, as change is constant and
 always something that should be sung by voices on high, including my
 own. all of the dust settling from when i took letters from myself out of the
@@ -59,6 +62,7 @@ drawer, choosing between my old sense of completion versus my true sense
 of compartmentalisation. big words aren’t always worth a quarter anymore.
 good handwriting is what brings us here, now. and even now, i can see why
 i have never split my thoughts. its just not natural.
+
 so that is the last one, at least for now. blue green feels nice, especially now
 that things are similar yet discordant. slowly going up the scales of self, i
 once again can concentrate on one staccato feeling. one staccato time. never
@@ -93,4 +97,3 @@ that i need to turn on a light. but i don’t want to be too stoned. at least i
 remember to plug in my ipod. that could have been disastrous. i feel the
 depth of this piece shrinking. and that is how i know, at least for now, i am
 done with it.
-!79

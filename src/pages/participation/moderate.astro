@@ -5,6 +5,7 @@
  * server by /api/works/admin).
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
 ---
 <BaseLayout title="participation moderation" noindex>
   <header class="page-head wrap">
@@ -23,6 +24,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <p class="tabs" role="group" aria-label="work">
         <button type="button" class="btn" data-project="unfinished-sentence" aria-pressed="true">unfinished sentence</button>
         <button type="button" class="btn" data-project="space-in-between-us" aria-pressed="false">space in between us</button>
+        {site.works.responses.poems.map((poem) => (
+          <button type="button" class="btn" data-project={`responses/${poem}`} aria-pressed="false">responses: {poem.replace(/-/g, ' ')}</button>
+        ))}
       </p>
       <p class="label" data-info aria-live="polite"></p>
       <div class="banner" data-banner hidden></div>
@@ -92,7 +96,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     async function view() {
       info.textContent = 'loading…';
-      const r = await api<any>(`/api/works/admin?project=${project}`, { headers: auth() });
+      const r = await api<any>(`/api/works/admin?project=${encodeURIComponent(project)}`, { headers: auth() });
       if (r.status === 401) { info.textContent = 'that key was not accepted.'; panel.hidden = true; form.hidden = false; return; }
       if (!r.ok) { info.textContent = 'could not load. try again.'; return; }
       const d = r.data;
@@ -162,7 +166,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const settings = $('[data-settings]');
       settings.replaceChildren(...Object.entries(st).flatMap(([k, v]) => [el('dt', 'label', k), el('dd', '', String(v))]));
 
-      const a = await api<any>(`/api/works/admin?project=${project}&view=audit`, { headers: auth() });
+      const a = await api<any>(`/api/works/admin?project=${encodeURIComponent(project)}&view=audit`, { headers: auth() });
       $('[data-audit]').replaceChildren(...((a.data.audit ?? []) as any[]).slice(0, 40).map((x) => el('li', 'label', `${when(x.at)} · ${x.action}${x.seq ? ` · no. ${x.seq}` : ''}${x.n ? ` · milestone ${x.n}` : ''}`)));
     }
 

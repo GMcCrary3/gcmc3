@@ -287,6 +287,30 @@ await test('endpoints: full cycle through http (submit → approve → read → 
   assert.ok(audit.data.audit.some((a) => a.action === 'publish'));
 });
 
+/* ------------------------------------------------------------------ responses */
+await test('responses: only listed poems accept responses; others are refused (no hidden queues)', async () => {
+  const listed = site.works.responses.poems[0];
+  assert.ok(W.resolve(`responses/${listed}`));
+  assert.equal(W.resolve('responses/not-a-poem'), null);
+  assert.equal(W.resolve('responses/../sentence'), null);
+  const r = await call(submitFn, '/api/works/submit', { method: 'POST', b: { project: 'responses/not-a-poem', ...body() } });
+  assert.equal(r.status, 404);
+});
+
+await test('responses: moderated, separate from every other work, never milestones', async () => {
+  process.env.WORKS_STORE_SUFFIX = `-http${++storeN}`;
+  const slug = `responses/${site.works.responses.poems[0]}`;
+  const subs = [];
+  for (let i = 0; i < 13; i++) subs.push((await call(submitFn, '/api/works/submit', { method: 'POST', b: { project: slug, ...body() } })).data);
+  assert.ok(subs.every((x) => x.status === 'pending'));
+  assert.equal((await call(read, `/api/works/${slug}`)).data.entries.length, 0, 'nothing public before review');
+  const ap = await call(admin, '/api/works/admin', { method: 'POST', headers: ADMIN, b: { project: slug, action: 'approve', ids: subs.map((x) => x.id) } });
+  assert.ok(Object.values(ap.data.results).every((v) => /^published/.test(v)), 'no milestone ever stops responses');
+  const pub = await call(read, `/api/works/${slug}`);
+  assert.equal(pub.data.entries.length, 13); assert.equal(pub.data.awaiting, false);
+  assert.equal((await call(read, '/api/works/unfinished-sentence')).data.entries.length, 0, 'responses never enter another work');
+});
+
 await server.stop();
 await rm(dir, { recursive: true, force: true });
 for (const r of results) console.log(r.join('  '));

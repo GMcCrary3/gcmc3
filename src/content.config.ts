@@ -74,6 +74,12 @@ const writing = defineCollection({
     links: listOf(z.object({ label: z.string(), url: z.string().url() })),
     order: z.number().default(100),
     draft: z.boolean().default(false),
+    /** Awaiting the artist's review: shown on the private preview, never in a public build. */
+    review: z.boolean().default(false),
+    /** Where the text was verified (book and pages), for the record. */
+    source: optionalText,
+    /** Readers may leave their own responses below the work (moderated). */
+    responses: z.boolean().default(false),
   }),
 });
 

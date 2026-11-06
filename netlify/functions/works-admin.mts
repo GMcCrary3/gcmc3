@@ -14,8 +14,8 @@
 import type { Config } from '@netlify/functions';
 import { json, readBody, safeEqual } from './_lib/field.ts';
 import {
-  PROJECTS, approve, intervene, isSlug, listAudit, listRequests, listSubmissions, readComposition, reject,
-  removeEntry, resolveRequest, settings, windowFor, worksStore,
+  approve, intervene, listAudit, listRequests, listSubmissions, readComposition, reject,
+  removeEntry, resolve, resolveRequest, settings, windowFor, worksStore,
 } from './_lib/works.ts';
 
 export default async (req: Request) => {
@@ -30,8 +30,9 @@ export default async (req: Request) => {
   const url = new URL(req.url);
   const body = req.method === 'POST' ? await readBody(req) : null;
   const slug = String(body?.project ?? url.searchParams.get('project') ?? '');
-  if (!isSlug(slug)) return json({ error: 'unknown' }, 404);
-  const p = PROJECTS[slug];
+  const work = resolve(slug);
+  if (!work) return json({ error: 'unknown' }, 404);
+  const p = work.project;
   const s = worksStore(p);
   const st = settings(p);
 

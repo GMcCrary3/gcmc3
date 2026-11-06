@@ -7,29 +7,30 @@
  */
 import type { Config } from '@netlify/functions';
 import { json } from './_lib/field.ts';
-import { PROJECTS, findSubmission, isSlug, ownsSubmission, publicView, readComposition, settings, worksStore } from './_lib/works.ts';
+import { findSubmission, ownsSubmission, publicView, readComposition, resolve, settings, worksStore } from './_lib/works.ts';
 
 export default async (req: Request) => {
   const url = new URL(req.url);
-  const slug = url.pathname.split('/').pop() ?? '';
+  const slug = url.pathname.replace(/^\/api\/works\//, '').replace(/\/$/, '');
 
   if (slug === 'receipt') {
-    const project = url.searchParams.get('project') ?? '';
-    if (!isSlug(project)) return json({ error: 'unknown' }, 404);
-    const s = worksStore(PROJECTS[project]);
+    const work = resolve(url.searchParams.get('project') ?? '');
+    if (!work) return json({ error: 'unknown' }, 404);
+    const s = worksStore(work.project);
     const found = await findSubmission(s, url.searchParams.get('id') ?? '');
     if (!found || !(await ownsSubmission(found.sub, req.headers.get('x-works-key') ?? ''))) return json({ error: 'not found' }, 404);
     const { sub } = found;
     return json({ status: sub.status, seq: sub.seq ?? null, receivedAt: sub.receivedAt });
   }
 
-  if (!isSlug(slug)) return json({ error: 'unknown' }, 404);
-  const p = PROJECTS[slug];
+  const work = resolve(slug);
+  if (!work) return json({ error: 'unknown' }, 404);
+  const p = work.project;
   const view = publicView(await readComposition(worksStore(p), p), settings(p));
   return json(view, 200, { 'netlify-cdn-cache-control': 'public, s-maxage=10, stale-while-revalidate=60' });
 };
 
 export const config: Config = {
-  path: ['/api/works/unfinished-sentence', '/api/works/space-in-between-us', '/api/works/receipt'],
+  path: ['/api/works/unfinished-sentence', '/api/works/space-in-between-us', '/api/works/receipt', '/api/works/responses/*'],
   method: ['GET'],
 };

@@ -6,17 +6,19 @@
  */
 import site from '../data/site.json';
 
-interface Props { project: 'unfinished-sentence' | 'space-in-between-us'; prompt: string; maxChars: number; rows?: number }
+interface Props { project: string; prompt: string; maxChars: number; rows?: number }
 const { project, prompt, maxChars, rows = 4 } = Astro.props;
 const w = site.works;
-const moderation = project === 'unfinished-sentence' ? w.sentence.moderation : w.between.moderation;
+const isResponse = project.startsWith('responses/');
+const moderation = isResponse ? w.responses.moderation : project === 'unfinished-sentence' ? w.sentence.moderation : w.between.moderation;
+const fieldId = project.replace(/[^a-z0-9-]/g, '-');
 ---
 <form class="works-form" data-works-form data-project={project} novalidate>
   <p class="invitation">{w.copy.invitation}</p>
 
-  <label class="prompt" for={`${project}-text`}>{prompt}</label>
-  <textarea id={`${project}-text`} name="text" rows={rows} maxlength={maxChars} required data-text aria-describedby={`${project}-count`}></textarea>
-  <p class="count label" id={`${project}-count`} data-count></p>
+  <label class="prompt" for={`${fieldId}-text`}>{prompt}</label>
+  <textarea id={`${fieldId}-text`} name="text" rows={rows} maxlength={maxChars} required data-text aria-describedby={`${fieldId}-count`}></textarea>
+  <p class="count label" id={`${fieldId}-count`} data-count></p>
 
   <fieldset class="credit">
     <legend class="label">credit</legend>
@@ -30,14 +32,16 @@ const moderation = project === 'unfinished-sentence' ? w.sentence.moderation : w
     <ul>
       <li>your words remain yours. you keep the copyright in what you write.</li>
       <li>you allow them to appear in this work and become part of it, here and in records and exhibitions of the work.</li>
-      <li>the work keeps changing. others will write after you, and the artist will intervene.</li>
+      {isResponse
+        ? <li>your response appears beneath the work, beside other people's. the work itself never changes.</li>
+        : <li>the work keeps changing. others will write after you, and the artist will intervene.</li>}
       <li>you choose: credited by a name you give, or anonymous. no email or account is asked for, and your connection details are not stored with your words. your words themselves may still say who you are.</li>
       <li>{moderation === 'pre' ? 'every contribution is read before it appears. once published, anyone can read it.' : 'published words can be read by anyone.'}</li>
       <li>this browser keeps a private key for your words: with it you can withdraw them before they appear, or ask for them to be removed afterwards. a removal leaves a visible gap. copies others have already made cannot be recalled.</li>
     </ul>
     <p class="agree">
-      <input type="checkbox" id={`${project}-agree`} data-agree value={w.termsVersion} />
-      <label for={`${project}-agree`}>i agree to the <a href="/participation/terms/" target="_blank" rel="noopener">participation terms</a>.</label>
+      <input type="checkbox" id={`${fieldId}-agree`} data-agree value={w.termsVersion} />
+      <label for={`${fieldId}-agree`}>i agree to the <a href="/participation/terms/" target="_blank" rel="noopener">participation terms</a>.</label>
     </p>
   </div>
 
@@ -47,8 +51,8 @@ const moderation = project === 'unfinished-sentence' ? w.sentence.moderation : w
   <p class="status" role="status" aria-live="polite" data-status></p>
 </form>
 
-<section class="mine" data-mine hidden aria-labelledby={`${project}-mine-h`}>
-  <h2 class="label" id={`${project}-mine-h`}>your contributions, on this device</h2>
+<section class="mine" data-mine hidden aria-labelledby={`${fieldId}-mine-h`}>
+  <h2 class="label" id={`${fieldId}-mine-h`}>your contributions, on this device</h2>
   <ul data-mine-list></ul>
 </section>
 

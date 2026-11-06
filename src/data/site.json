@@ -91,6 +91,16 @@
       "interventionEvery": null,
       "enforceArtistTurn": false,
       "maxChars": 3000
+    },
+    "responses": {
+      "open": true,
+      "moderation": "pre",
+      "heading": "responses",
+      "prompt": "what did this leave with you?",
+      "maxChars": 2000,
+      "poems": [
+        "view-from-the-fourteenth-fifteenth"
+      ]
     }
   },
   "contactForm": {
