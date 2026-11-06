@@ -1,0 +1,183 @@
+---
+/**
+ * space in between us: a layered exchange. Voices alternate across the page;
+ * the space between two stanzas is the time that passed between them.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageCopy from '../../components/PageCopy.astro';
+import WorksForm from '../../components/WorksForm.astro';
+import site from '../../data/site.json';
+const w = site.works;
+---
+<BaseLayout title="space in between us" description="space in between us. a layered exchange between strangers, with the artist somewhere in between. abstractly concrete, giles c mccrary iii.">
+  <header class="page-head wrap">
+    <a class="label" href="/participation/">abstractly concrete / participation</a>
+    <PageCopy id="between" headingAs="h1" class="intro-copy" />
+  </header>
+
+  <section class="wrap work" aria-labelledby="work-h" data-between-page data-copy={JSON.stringify(w.copy)} data-byline={site.byline}>
+    <h2 id="work-h" class="visually-hidden">the exchange so far</h2>
+    <ol class="exchange" data-exchange><li class="loading label">loading…</li></ol>
+    <noscript><p class="label">reading and responding needs javascript.</p></noscript>
+    <form class="report" data-report hidden>
+      <p class="label">report stanza no. <span data-report-seq></span></p>
+      <select data-report-reason aria-label="reason">
+        <option value="hate">hateful</option>
+        <option value="threat">threatening</option>
+        <option value="personal information">someone's personal information</option>
+        <option value="impersonation">impersonation</option>
+        <option value="spam">spam</option>
+        <option value="other">something else</option>
+      </select>
+      <button type="submit" class="text-btn">send report</button>
+      <button type="button" class="text-btn" data-report-cancel>cancel</button>
+      <span class="label" data-report-status aria-live="polite"></span>
+    </form>
+
+    <div class="contribute" data-contribute>
+      <WorksForm project="space-in-between-us" prompt={w.between.prompt} maxChars={w.between.maxChars} rows={6} />
+    </div>
+  </section>
+
+  <script>
+    import { load, report, setupForm, type PublicEntry } from '../../lib/works-client';
+    const root = document.querySelector<HTMLElement>('[data-between-page]')!;
+    const copy = JSON.parse(root.dataset.copy!);
+    const byline = root.dataset.byline!;
+    const list = root.querySelector<HTMLOListElement>('[data-exchange]')!;
+    const contribute = root.querySelector<HTMLElement>('[data-contribute]')!;
+    const reportForm = root.querySelector<HTMLFormElement>('[data-report]')!;
+    let entries: PublicEntry[] = [];
+    let draftText = '';
+    let reportSeq = 0;
+
+    const numberWords = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+    const say = (n: number, unit: string) => `${numberWords[n] ?? n} ${unit}${n === 1 ? '' : 's'}`;
+    /** The interval, in words: the gap the reader is looking at. */
+    function interval(ms: number) {
+      const h = ms / 3.6e6;
+      if (h < 1) return 'within the hour';
+      if (h < 24) return `${say(Math.round(h), 'hour')} later`;
+      const d = h / 24;
+      if (d < 14) return `${say(Math.round(d), 'day')} later`;
+      if (d < 60) return `${say(Math.round(d / 7), 'week')} later`;
+      return `${say(Math.round(d / 30), 'month')} later`;
+    }
+    /** Space grows with elapsed time, slowly: minutes are close, months are far. */
+    const gap = (ms: number) => Math.min(14, 1.25 + Math.log2(1 + ms / 3.6e6) * 1.1);
+
+    function stanza(e: PublicEntry, side: 'left' | 'right' | 'artist', before?: PublicEntry) {
+      const li = document.createElement('li');
+      li.className = `stanza ${side}${e.removed ? ' removed' : ''}`;
+      if (before?.at && e.at) {
+        const ms = Math.max(0, Date.parse(e.at) - Date.parse(before.at));
+        li.style.setProperty('--gap', `${gap(ms)}rem`);
+        const t = document.createElement('span');
+        t.className = 'interval label';
+        t.textContent = interval(ms);
+        li.append(t);
+      }
+      const body = document.createElement('p');
+      body.className = 'words';
+      body.textContent = e.removed ? 'removed' : e.text ?? '';
+      const meta = document.createElement('p');
+      meta.className = 'meta label';
+      meta.append(`${e.seq} · ${e.kind === 'artist' ? byline : e.display ?? 'anonymous'}`);
+      if (e.kind === 'visitor' && !e.removed) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'text-btn report-btn'; b.textContent = 'report';
+        b.setAttribute('aria-label', `report stanza ${e.seq}`);
+        b.addEventListener('click', () => {
+          reportSeq = e.seq; reportForm.hidden = false;
+          reportForm.querySelector('[data-report-seq]')!.textContent = String(e.seq);
+          reportForm.querySelector<HTMLSelectElement>('select')!.focus();
+        });
+        meta.append(b);
+      }
+      li.append(body, meta);
+      return li;
+    }
+
+    function render() {
+      let visitorIndex = 0;
+      const items = entries.map((e, i) => {
+        const side = e.kind === 'artist' ? 'artist' : visitorIndex++ % 2 === 0 ? 'left' : 'right';
+        return stanza(e, side, entries[i - 1]);
+      });
+      if (!entries.length) {
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = copy.empty;
+        items.push(li);
+      }
+      // Your unsent words, on the side they would take.
+      if (draftText.trim()) {
+        const li = document.createElement('li');
+        li.className = `stanza ghost ${visitorIndex % 2 === 0 ? 'left' : 'right'}`;
+        li.setAttribute('aria-hidden', 'true');
+        const p = document.createElement('p');
+        p.className = 'words';
+        p.textContent = draftText;
+        const m = document.createElement('p');
+        m.className = 'meta label';
+        m.textContent = 'yours, not yet sent';
+        li.append(p, m);
+        items.push(li);
+      }
+      list.replaceChildren(...items);
+    }
+
+    reportForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const r = await report('space-in-between-us', reportSeq, reportForm.querySelector<HTMLSelectElement>('select')!.value);
+      reportForm.querySelector('[data-report-status]')!.textContent = r.ok ? 'reported. it will be read.' : 'could not send the report just now.';
+    });
+    reportForm.querySelector('[data-report-cancel]')!.addEventListener('click', () => { reportForm.hidden = true; });
+
+    async function refresh() {
+      const r = await load('space-in-between-us');
+      if (!r.ok) {
+        list.replaceChildren(Object.assign(document.createElement('li'), { className: 'empty', textContent: 'the exchange could not be loaded just now. try again shortly.' }));
+        return;
+      }
+      entries = r.data.entries;
+      contribute.hidden = !r.data.open;
+      render();
+    }
+    setupForm('space-in-between-us', copy, (t) => { draftText = t; render(); }, () => void refresh());
+    void refresh();
+  </script>
+</BaseLayout>
+
+<style>
+  .page-head .label { text-decoration: none; display: block; margin-bottom: 1.25rem; }
+  .page-head :global(.intro-copy h1) { font-size: clamp(2.75rem, 1.8rem + 4.5vw, 5.75rem); font-weight: 400; letter-spacing: -0.015em; line-height: 1; }
+  .page-head :global(.intro-copy .pc-body) { margin-top: 1.5rem; max-width: 36rem; }
+  .work { display: grid; gap: var(--space-4); }
+
+  /* Two voices across a gap; the artist somewhere in between. */
+  .exchange { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; max-width: 64rem; }
+  .exchange :global(.stanza) { position: relative; width: min(100%, 30rem); margin-top: var(--gap, 1.25rem); }
+  .exchange :global(.stanza.left) { align-self: flex-start; }
+  .exchange :global(.stanza.right) { align-self: flex-end; text-align: left; }
+  .exchange :global(.stanza.artist) { align-self: center; width: min(100%, 26rem); border-top: 1px solid var(--oxide); border-bottom: 1px solid var(--oxide); padding-block: 0.9rem; }
+  .exchange :global(.stanza.artist .words) { font-style: italic; }
+  .exchange :global(.words) { white-space: pre-wrap; font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.6rem); line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+  .exchange :global(.meta) { margin: 0.5rem 0 0; display: flex; gap: 1rem; align-items: baseline; }
+  .exchange :global(.report-btn) { font-size: 0.6875rem; padding: 0; }
+  .exchange :global(.interval) { position: absolute; bottom: calc(100% + 0.35rem); left: 0; white-space: nowrap; color: var(--slate); opacity: 0.85; }
+  .exchange :global(.stanza.right .interval) { left: auto; right: 0; }
+  .exchange :global(.stanza.artist .interval) { left: 50%; transform: translateX(-50%); }
+  .exchange :global(.removed .words) { font-family: var(--sans); font-size: 0.75rem; letter-spacing: 0.1em; color: var(--slate); }
+  .exchange :global(.ghost) { margin-top: 2.5rem; outline: 1px dashed var(--slate); outline-offset: 0.6rem; }
+  .exchange :global(.ghost .words) { color: var(--slate); }
+  .exchange :global(.empty) { white-space: pre-line; font-style: italic; color: var(--slate); font-size: 1.4rem; }
+  @media (max-width: 40em) {
+    .exchange :global(.stanza) { width: 88%; }
+    .exchange :global(.stanza.artist) { width: 100%; }
+  }
+  .report { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+  .report[hidden] { display: none; }
+  .report select { font: inherit; font-family: var(--sans); font-size: 0.875rem; padding: 0.3rem; background: var(--ivory); border: 1px solid var(--slate); }
+  .contribute[hidden] { display: none; }
+</style>

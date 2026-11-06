@@ -59,6 +59,40 @@
       "gilesmccrary.com/field"
     ]
   },
+  "works": {
+    "termsVersion": "2026-11-06",
+    "copy": {
+      "invitation": "your words are yours.\nwhat happens to them next is something we discover together.",
+      "submit": "leave your words",
+      "success": "your words have entered the work.\nwhat happens next no longer belongs to you alone.",
+      "pending": "your contribution has been received.\nit will appear if approved.",
+      "milestone": "twelve voices have spoken.\nthe next belongs to the artist.",
+      "empty": "nothing has been written here yet.\nsomeone has to begin.",
+      "error": "your contribution could not be saved.\nyour words are still here. please try again."
+    },
+    "sentence": {
+      "open": true,
+      "title": "unfinished sentence",
+      "prompt": "continue where someone else stopped.",
+      "moderation": "pre",
+      "every": 12,
+      "windowDays": 12,
+      "windowStartsAt": "milestone",
+      "showWindowPublicly": false,
+      "acceptWhileAwaiting": false,
+      "announceMilestones": false,
+      "maxChars": 1000
+    },
+    "between": {
+      "open": true,
+      "title": "space in between us",
+      "prompt": "what belongs in the space between these words and yours?",
+      "moderation": "pre",
+      "interventionEvery": null,
+      "enforceArtistTurn": false,
+      "maxChars": 3000
+    }
+  },
   "contactForm": {
     "enabled": true,
     "recaptcha": false

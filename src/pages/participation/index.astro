@@ -1,0 +1,52 @@
+---
+/** abstractly concrete / participation: the works the audience makes. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageCopy from '../../components/PageCopy.astro';
+import site from '../../data/site.json';
+const w = site.works;
+const works = [
+  { href: '/field/', title: site.field.title, line: 'leave something here.', open: site.field.open },
+  { href: '/abstract/', title: site.abstractRoom.title, line: site.abstractRoom.prompt.toLowerCase(), open: true },
+  { href: '/unfinished-sentence/', title: w.sentence.title, line: 'every twelfth submission changes the equation.', open: w.sentence.open },
+  { href: '/space-in-between-us/', title: w.between.title, line: 'you write. someone responds. i enter somewhere in between.', open: w.between.open },
+].filter((x) => x.open);
+---
+<BaseLayout title="participation" description="abstractly concrete. no one creates alone. no one leaves unchanged. the participatory works of giles c mccrary iii.">
+  <header class="page-head wrap">
+    <span class="label">participation</span>
+    <PageCopy id="participation" headingAs="h1" class="hub-copy" />
+  </header>
+
+  <section class="wrap" aria-label="the works">
+    <ol class="works">
+      {works.map((x) => (
+        <li>
+          <a href={x.href}>
+            <span class="t">{x.title}</span>
+            <span class="l">{x.line}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="wrap closing" aria-label="closing statement">
+    <PageCopy id="closing" headingAs="none" class="closing-copy" />
+  </section>
+</BaseLayout>
+
+<style>
+  .page-head :global(.hub-copy h1) { font-size: clamp(2.75rem, 1.8rem + 4.5vw, 5.75rem); font-weight: 400; letter-spacing: -0.015em; line-height: 1; }
+  .page-head :global(.hub-copy .pc-lead) { max-width: 36ch; text-wrap: balance; }
+  .page-head :global(.hub-copy .pc-body) { max-width: 36rem; }
+  .works { list-style: none; padding: 0; margin: var(--space-3) 0 0; border-top: 1px solid var(--rule); }
+  .works li { border-bottom: 1px solid var(--rule); }
+  .works a { display: grid; gap: 0.35rem; padding-block: 1.4rem; text-decoration: none; }
+  @media (min-width: 52em) { .works a { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: baseline; gap: var(--gutter); } }
+  .works .t { font-size: clamp(1.9rem, 1.3rem + 2.4vw, 3.4rem); line-height: 1.05; }
+  .works .l { font-style: italic; color: var(--ink-soft); font-size: 1.25rem; }
+  .works a:hover .t, .works a:focus-visible .t { color: var(--oxide); }
+  .closing { padding-top: var(--space-5); }
+  .closing :global(.closing-copy .pc-body) { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem); line-height: 1.25; max-width: 24ch; }
+  .closing :global(.closing-copy .pc-body p) { margin-bottom: 0.4em; }
+</style>

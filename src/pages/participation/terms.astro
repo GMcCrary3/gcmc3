@@ -1,0 +1,51 @@
+---
+/**
+ * Participation terms for unfinished sentence and space in between us.
+ * Lowercase, like all public copy. Version-dated; the version is stored with
+ * every contribution. Not legal advice: review before public launch.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EditorialNote from '../../components/EditorialNote.astro';
+import site from '../../data/site.json';
+const w = site.works;
+---
+<BaseLayout title="participation terms" description="the terms for contributing to unfinished sentence and space in between us.">
+  <header class="page-head wrap">
+    <a class="label" href="/participation/">participation</a>
+    <h1>participation terms</h1>
+    <p class="label">unfinished sentence and space in between us · version {w.termsVersion}</p>
+  </header>
+  <div class="wrap prose terms">
+    <EditorialNote>
+      Draft for approval and legal review before public launch. If these terms change, update
+      the version date in settings, and new contributions will record the new version.
+    </EditorialNote>
+
+    <h2>your words</h2>
+    <p>you keep the copyright in what you write. leaving your words here does not transfer ownership.</p>
+    <p>by leaving them, you give giles c mccrary iii a non-exclusive, worldwide, royalty-free permission to show, reproduce and incorporate them in the work: on this website, and in records, documentation and exhibitions of the work. this permission lasts while your words remain in the work.</p>
+
+    <h2>the work keeps moving</h2>
+    <p>these are collaborative works. other people will write after you, and the artist will intervene. your words will sit beside words you did not choose. no one edits what you wrote, but what surrounds it will change.</p>
+
+    <h2>credit, and what is stored</h2>
+    <p>you choose to be credited by a name you give, or to be anonymous. we do not ask for your name, email or an account. with your words we store: the words, the credit you chose (if any), the date and time, the version of these terms you agreed to, and whether your words have been read, published or removed. your ip address and device details are not stored with your words, though the site's host processes them to deliver the site (see <a href="/privacy/">privacy</a>). your words themselves may still say who you are: write accordingly.</p>
+
+    <h2>reading before publishing</h2>
+    <p>{w.sentence.moderation === 'pre' && w.between.moderation === 'pre' ? 'every contribution is read before it appears. some are not published; you will see that on this device.' : 'contributions may appear at once; some are read first.'} hateful or threatening words, other people's personal information, impersonation, links and spam are not published.</p>
+
+    <h2>public</h2>
+    <p>once published, your words can be read by anyone, and may be copied or shared by them.</p>
+
+    <h2>withdrawing and removal</h2>
+    <p>when you leave your words, this browser keeps a private key for them. with it, you can withdraw them before they are published, or ask for them to be removed after. if you no longer have the key, ask through the <a href="/contact/">contact page</a>, quoting the work and the contribution's number.</p>
+    <p>a removal erases your words from the work. their place in the sequence stays, marked as removed, so the work is never silently rearranged. copies other people have already made, or that exist in independent archives, cannot be recalled.</p>
+
+    <h2>no guarantee</h2>
+    <p>these are artworks. they may pause, change or end.</p>
+  </div>
+</BaseLayout>
+<style>
+  .page-head .label { text-decoration: none; }
+  .terms h2 { font-size: 1.375rem; margin-top: 2.25rem; }
+</style>

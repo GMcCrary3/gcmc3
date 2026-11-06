@@ -19,7 +19,7 @@ process.env.FIELD_BLOBS_TOKEN = 'local';
 process.env.FIELD_ADMIN_TOKEN ??= 'local-dev-moderation-token-0123456789abcdef';
 
 const fns = await Promise.all(
-  ['field-read', 'field-leave', 'field-actions', 'field-moderate'].map(async (name) => {
+  ['field-read', 'field-leave', 'field-actions', 'field-moderate', 'works-read', 'works-submit', 'works-visitor', 'works-admin'].map(async (name) => {
     const mod = await import(join(root, 'netlify/functions', `${name}.mts`));
     const paths = [mod.config.path].flat();
     return { handler: mod.default, paths, methods: mod.config.method };

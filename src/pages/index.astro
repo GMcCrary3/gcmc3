@@ -73,7 +73,12 @@ const books = (await getWriting()).filter((w) => w.data.kind === 'book');
         <span class="t">{site.field.title}</span>
         <span class="inv">{site.field.invitation}</span>
       </a>
-      <p class="label"><a href="/abstract/">{site.abstractRoom.title}</a></p>
+      <p class="label part-links">
+        <a href="/abstract/">{site.abstractRoom.title}</a>
+        {site.works.sentence.open && <a href="/unfinished-sentence/">{site.works.sentence.title}</a>}
+        {site.works.between.open && <a href="/space-in-between-us/">{site.works.between.title}</a>}
+        <a href="/participation/">all participation</a>
+      </p>
     </section>
   )}
 
@@ -192,6 +197,7 @@ const books = (await getWriting()).filter((w) => w.data.kind === 'book');
   .invite .inv { white-space: pre-line; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); font-style: italic; color: var(--ink-soft); max-width: 40ch; line-height: 1.4; }
   .invite:hover .t { color: var(--oxide); }
   .participation .label a { text-decoration: none; font-size: 0.875rem; }
+  .part-links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
 
   .writing { padding-top: var(--space-5); }
   .book-list { list-style: none; margin: 0; padding: 0; }

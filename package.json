@@ -16,7 +16,8 @@
     "field:dev": "node scripts/field-dev-server.mjs",
     "test:field": "node scripts/field-test.mjs",
     "test:gate": "node scripts/gate-test.mjs",
-    "test": "npm run test:field && npm run test:gate"
+    "test": "npm run test:field && npm run test:gate && npm run test:works",
+    "test:works": "node scripts/works-test.mjs"
   },
   "engines": {
     "node": ">=20.3.0"

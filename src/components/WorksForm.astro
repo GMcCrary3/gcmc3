@@ -1,0 +1,90 @@
+---
+/**
+ * The contribution form shared by both literary works: the visitor's words,
+ * how they want to be credited, explicit consent (unchecked by default), and
+ * a status line that only ever reports what the server confirmed.
+ */
+import site from '../data/site.json';
+
+interface Props { project: 'unfinished-sentence' | 'space-in-between-us'; prompt: string; maxChars: number; rows?: number }
+const { project, prompt, maxChars, rows = 4 } = Astro.props;
+const w = site.works;
+const moderation = project === 'unfinished-sentence' ? w.sentence.moderation : w.between.moderation;
+---
+<form class="works-form" data-works-form data-project={project} novalidate>
+  <p class="invitation">{w.copy.invitation}</p>
+
+  <label class="prompt" for={`${project}-text`}>{prompt}</label>
+  <textarea id={`${project}-text`} name="text" rows={rows} maxlength={maxChars} required data-text aria-describedby={`${project}-count`}></textarea>
+  <p class="count label" id={`${project}-count`} data-count></p>
+
+  <fieldset class="credit">
+    <legend class="label">credit</legend>
+    <label><input type="radio" name="credit" value="anonymous" checked /> anonymous</label>
+    <label><input type="radio" name="credit" value="name" /> credit me as</label>
+    <input type="text" name="display" maxlength="40" autocomplete="off" aria-label="the name to credit" data-display disabled />
+  </fieldset>
+
+  <div class="consent">
+    <p class="label">before you leave your words</p>
+    <ul>
+      <li>your words remain yours. you keep the copyright in what you write.</li>
+      <li>you allow them to appear in this work and become part of it, here and in records and exhibitions of the work.</li>
+      <li>the work keeps changing. others will write after you, and the artist will intervene.</li>
+      <li>you choose: credited by a name you give, or anonymous. no email or account is asked for, and your connection details are not stored with your words. your words themselves may still say who you are.</li>
+      <li>{moderation === 'pre' ? 'every contribution is read before it appears. once published, anyone can read it.' : 'published words can be read by anyone.'}</li>
+      <li>this browser keeps a private key for your words: with it you can withdraw them before they appear, or ask for them to be removed afterwards. a removal leaves a visible gap. copies others have already made cannot be recalled.</li>
+    </ul>
+    <p class="agree">
+      <input type="checkbox" id={`${project}-agree`} data-agree value={w.termsVersion} />
+      <label for={`${project}-agree`}>i agree to the <a href="/participation/terms/" target="_blank" rel="noopener">participation terms</a>.</label>
+    </p>
+  </div>
+
+  <p class="actions">
+    <button type="submit" class="btn primary" data-submit>{w.copy.submit}</button>
+  </p>
+  <p class="status" role="status" aria-live="polite" data-status></p>
+</form>
+
+<section class="mine" data-mine hidden aria-labelledby={`${project}-mine-h`}>
+  <h2 class="label" id={`${project}-mine-h`}>your contributions, on this device</h2>
+  <ul data-mine-list></ul>
+</section>
+
+<style>
+  .works-form { display: grid; gap: 1rem; max-width: 40rem; }
+  .invitation { white-space: pre-line; font-style: italic; font-size: 1.3rem; line-height: 1.4; margin: 0; color: var(--ink-soft); }
+  .prompt { font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem); line-height: 1.25; margin-top: 0.5rem; }
+  textarea {
+    font: inherit;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--slate);
+    border-radius: 0;
+    padding: 0.75rem;
+    resize: vertical;
+    width: 100%;
+  }
+  textarea:focus-visible, .credit input[type='text']:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .count { margin: -0.5rem 0 0; text-align: right; }
+  .credit { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; font-family: var(--sans); font-size: 0.9375rem; }
+  .credit legend { margin-bottom: 0.4rem; width: 100%; }
+  .credit input[type='text'] { font: inherit; border: 0; border-bottom: 1px solid var(--slate); background: transparent; padding: 0.3rem 0; min-width: 12rem; flex: 1; }
+  .credit input[type='text']:disabled { opacity: 0.4; }
+  .consent { border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .consent ul { margin: 0.5rem 0 1rem; padding-left: 1.1rem; display: grid; gap: 0.4rem; font-size: 1.0625rem; line-height: 1.45; }
+  .agree { display: flex; gap: 0.6rem; align-items: baseline; font-family: var(--sans); font-size: 0.9375rem; margin: 0; }
+  .agree input { width: 1.1rem; height: 1.1rem; flex: none; accent-color: var(--ink); transform: translateY(0.15rem); }
+  .actions { margin: 0; }
+  .status { white-space: pre-line; font-size: 1.3rem; font-style: italic; min-height: 1.5em; margin: 0; }
+  .status.error { color: var(--oxide); font-style: normal; font-family: var(--sans); font-size: 0.9375rem; }
+  .mine { margin-top: var(--space-3); max-width: 40rem; }
+  .mine[hidden] { display: none; }
+  .mine ul { list-style: none; padding: 0; margin: 0.75rem 0 0; display: grid; gap: 0.75rem; }
+  .mine :global(li) { border-top: 1px solid var(--rule); padding-top: 0.6rem; }
+  .mine :global(.mine-text) { white-space: pre-line; margin: 0 0 0.3rem; }
+  .mine :global(.mine-meta) { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
+</style>

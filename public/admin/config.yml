@@ -243,6 +243,22 @@ collections:
         name: space_between_us
         file: src/content/pages/space-between-us.md
         fields: *copyfields
+      - label: "participation: abstractly concrete"
+        name: participation
+        file: src/content/pages/participation.md
+        fields: *copyfields
+      - label: "unfinished sentence"
+        name: sentence
+        file: src/content/pages/sentence.md
+        fields: *copyfields
+      - label: "space in between us"
+        name: between
+        file: src/content/pages/between.md
+        fields: *copyfields
+      - label: "closing statement"
+        name: closing
+        file: src/content/pages/closing.md
+        fields: *copyfields
       - label: "artist statement (shown only when approved)"
         name: statement
         file: src/content/pages/statement.md
@@ -321,6 +337,64 @@ collections:
               - { label: "individual view", name: oneByOne, widget: string }
               - { label: "note on contributors", name: contributorNote, widget: text }
               - { label: "credit lines on shared images", name: creditLines, widget: list, field: { label: line, name: line, widget: string } }
+          - label: "works: unfinished sentence and space in between us"
+            name: works
+            widget: object
+            fields:
+              - { label: "participation terms version (change when the terms change)", name: termsVersion, widget: string }
+              - label: "interface copy (lowercase)"
+                name: copy
+                widget: object
+                fields:
+                  - { label: invitation, name: invitation, widget: text }
+                  - { label: "submit button", name: submit, widget: string }
+                  - { label: "published at once", name: success, widget: text }
+                  - { label: "awaiting moderation", name: pending, widget: text }
+                  - { label: "intervention milestone", name: milestone, widget: text }
+                  - { label: "empty", name: empty, widget: text }
+                  - { label: "error", name: error, widget: text }
+              - label: "unfinished sentence"
+                name: sentence
+                widget: object
+                fields:
+                  - { label: "open for contributions", name: open, widget: boolean }
+                  - { label: title, name: title, widget: string }
+                  - { label: prompt, name: prompt, widget: string }
+                  - label: "moderation (artist decision pending)"
+                    name: moderation
+                    widget: select
+                    options:
+                      - { label: "read before publishing", value: pre }
+                      - { label: "publish at once (screened)", value: post }
+                  - { label: "visitor contributions per intervention", name: every, widget: number, value_type: int }
+                  - { label: "intervention window in days (meaning not yet approved)", name: windowDays, widget: number, value_type: int, required: false }
+                  - label: "the window starts at (artist decision pending)"
+                    name: windowStartsAt
+                    widget: select
+                    options:
+                      - { label: "the milestone (when the twelfth is published)", value: milestone }
+                      - { label: "approval of the twelfth contribution", value: approval }
+                      - { label: "submission of the twelfth contribution", value: submission }
+                  - { label: "show the window's end date publicly", name: showWindowPublicly, widget: boolean }
+                  - { label: "accept new submissions while the artist is awaited", name: acceptWhileAwaiting, widget: boolean }
+                  - { label: "announce milestones publicly (artist decision pending)", name: announceMilestones, widget: boolean }
+                  - { label: "technical length limit (characters)", name: maxChars, widget: number, value_type: int }
+              - label: "space in between us"
+                name: between
+                widget: object
+                fields:
+                  - { label: "open for contributions", name: open, widget: boolean }
+                  - { label: title, name: title, widget: string }
+                  - { label: prompt, name: prompt, widget: string }
+                  - label: "moderation (artist decision pending)"
+                    name: moderation
+                    widget: select
+                    options:
+                      - { label: "read before publishing", value: pre }
+                      - { label: "publish at once (screened)", value: post }
+                  - { label: "artist intervenes every … stanzas (3 or 5 under consideration; empty = undecided)", name: interventionEvery, widget: number, value_type: int, required: false }
+                  - { label: "enforce the artist's turn (off until approved)", name: enforceArtistTurn, widget: boolean }
+                  - { label: "technical length limit (characters)", name: maxChars, widget: number, value_type: int }
           - label: contact form
             name: contactForm
             widget: object

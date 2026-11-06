@@ -16,6 +16,11 @@ the site needs no server, which keeps it faster, simpler, and more secure), edit
 | `/exhibition/` | **the primary experience**: five movements of paintings, interludes and optional poem reveals, with a hideable movement guide, previous/next controls and enlargement |
 | `/abstract/` | *abstract your own concrete.* — visitors name something concrete and take it apart themselves (loosen, scatter, unweight, erase, drag); they can save the result as an image. Nothing they type leaves their browser |
 | `/field/` | **the field.** — *abstractly concrete / participation*: a participatory artwork. Visitors' contributions, *seen as one.* or *one by one.*; each has its own link and shareable image |
+| `/participation/` | *abstractly concrete*: the hub for every participatory work, with the closing statement |
+| `/unfinished-sentence/` | **unfinished sentence**: one continuous text; every twelfth accepted visitor contribution is followed by the artist's intervention |
+| `/space-in-between-us/` | **space in between us**: a layered exchange; voices alternate across the page, and the space between stanzas is the time between them |
+| `/participation/terms/` | participation terms for both literary works (draft, pending legal review) |
+| `/participation/moderate/` | the artist's controls for both: queue, bulk publish/reject, interventions, milestones, reports, removal, history (moderation key) |
 | `/field/terms/` | participation terms (draft, pending legal review) |
 | `/field/moderate/` | the artist's private moderation view (needs the moderation key) |
 | `/artwork/` | selected works (01, 07, 08, 05, 06, 03), then archive & process (09, 04, 02, 10) |
@@ -68,6 +73,8 @@ npm run preview      # serve the built site
 npm run status       # list missing images, empty fields, unapproved copy
 npm run field:dev    # after a build: the whole site *with the field working*, at http://localhost:8888
 npm run test:field   # automated tests for the field (consent, moderation, concurrency, crash recovery)
+npm run test:works   # automated tests for unfinished sentence and space in between us
+npm test             # everything
 ```
 
 ## More

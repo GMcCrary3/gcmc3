@@ -1,0 +1,208 @@
+---
+/**
+ * unfinished sentence: one continuous text, carried by visitors twelve
+ * accepted voices at a time, then interrupted by the artist.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageCopy from '../../components/PageCopy.astro';
+import WorksForm from '../../components/WorksForm.astro';
+import site from '../../data/site.json';
+const w = site.works;
+const every = w.sentence.every;
+---
+<BaseLayout title="unfinished sentence" description="unfinished sentence. a collective text, interrupted by the artist every twelfth voice. abstractly concrete, giles c mccrary iii.">
+  <header class="page-head wrap">
+    <a class="label" href="/participation/">abstractly concrete / participation</a>
+    <PageCopy id="sentence" headingAs="h1" class="intro-copy" />
+  </header>
+
+  <section class="wrap work" aria-labelledby="work-h" data-sentence-page data-every={every} data-copy={JSON.stringify(w.copy)} data-byline={site.byline}>
+    <h2 id="work-h" class="visually-hidden">the sentence so far</h2>
+
+    <div class="progress" data-progress hidden>
+      <div class="marks" data-marks aria-hidden="true">
+        {Array.from({ length: every }, () => <i></i>)}
+      </div>
+      <p class="count" data-count-line></p>
+      <p class="until label" data-until></p>
+    </div>
+    <p class="milestone" data-milestone role="status" hidden></p>
+
+    <div class="reading">
+      <p class="sentence" data-sentence aria-live="off"><span class="loading label">loading the sentence…</span></p>
+      <noscript><p class="label">reading and continuing the sentence needs javascript.</p></noscript>
+      <p class="tools">
+        <button type="button" class="text-btn" data-seams aria-pressed="false">show voices</button>
+      </p>
+      <form class="report" data-report hidden>
+        <p class="label">report contribution no. <span data-report-seq></span></p>
+        <select data-report-reason aria-label="reason">
+          <option value="hate">hateful</option>
+          <option value="threat">threatening</option>
+          <option value="personal information">someone's personal information</option>
+          <option value="impersonation">impersonation</option>
+          <option value="spam">spam</option>
+          <option value="other">something else</option>
+        </select>
+        <button type="submit" class="text-btn">send report</button>
+        <button type="button" class="text-btn" data-report-cancel>cancel</button>
+        <span class="label" data-report-status aria-live="polite"></span>
+      </form>
+    </div>
+
+    <div class="contribute" data-contribute>
+      <WorksForm project="unfinished-sentence" prompt={w.sentence.prompt} maxChars={w.sentence.maxChars} rows={3} />
+    </div>
+  </section>
+
+  <script>
+    import { inWords, load, report, setupForm, type PublicEntry } from '../../lib/works-client';
+    const root = document.querySelector<HTMLElement>('[data-sentence-page]')!;
+    const copy = JSON.parse(root.dataset.copy!);
+    const every = Number(root.dataset.every);
+    const byline = root.dataset.byline!;
+    const sentence = root.querySelector<HTMLElement>('[data-sentence]')!;
+    const progress = root.querySelector<HTMLElement>('[data-progress]')!;
+    const marks = [...root.querySelectorAll<HTMLElement>('[data-marks] i')];
+    const countLine = root.querySelector<HTMLElement>('[data-count-line]')!;
+    const until = root.querySelector<HTMLElement>('[data-until]')!;
+    const milestone = root.querySelector<HTMLElement>('[data-milestone]')!;
+    const contribute = root.querySelector<HTMLElement>('[data-contribute]')!;
+    const seamsBtn = root.querySelector<HTMLButtonElement>('[data-seams]')!;
+    const reportForm = root.querySelector<HTMLFormElement>('[data-report]')!;
+    let ghost: HTMLSpanElement | null = null;
+    let reportSeq = 0;
+
+    function voice(e: PublicEntry) {
+      const span = document.createElement('span');
+      span.className = `voice ${e.kind}${e.removed ? ' removed' : ''}`;
+      span.dataset.seq = String(e.seq);
+      const seam = document.createElement('button');
+      seam.type = 'button';
+      seam.className = 'seam';
+      seam.textContent = `${e.seq}${e.kind === 'artist' ? ' · ' + byline : e.display ? ' · ' + e.display : ''}`;
+      seam.setAttribute('aria-label', `contribution ${e.seq}${e.kind === 'artist' ? ', the artist' : e.display ? ', by ' + e.display : ', anonymous'}. report it`);
+      seam.addEventListener('click', () => openReport(e.seq));
+      if (e.kind === 'artist' || e.removed) seam.disabled = true;
+      const words = document.createElement('span');
+      words.className = 'words';
+      words.textContent = e.removed ? 'removed' : e.text ?? '';
+      span.append(seam, words, ' ');
+      return span;
+    }
+
+    function openReport(seq: number) {
+      reportSeq = seq;
+      reportForm.hidden = false;
+      reportForm.querySelector('[data-report-seq]')!.textContent = String(seq);
+      reportForm.querySelector<HTMLSelectElement>('select')!.focus();
+    }
+    reportForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const r = await report('unfinished-sentence', reportSeq, reportForm.querySelector<HTMLSelectElement>('select')!.value);
+      reportForm.querySelector('[data-report-status]')!.textContent = r.ok ? 'reported. it will be read.' : 'could not send the report just now.';
+    });
+    reportForm.querySelector('[data-report-cancel]')!.addEventListener('click', () => { reportForm.hidden = true; seamsBtn.focus(); });
+
+    seamsBtn.addEventListener('click', () => {
+      const on = sentence.classList.toggle('show-seams');
+      seamsBtn.setAttribute('aria-pressed', String(on));
+    });
+
+    // The unsent words appear where they would join the sentence.
+    function draft(t: string) {
+      if (!ghost) {
+        ghost = document.createElement('span');
+        ghost.className = 'ghost';
+        ghost.setAttribute('aria-hidden', 'true');
+      }
+      ghost.textContent = t;
+      ghost.hidden = !t.trim();
+      if (ghost.parentNode !== sentence) sentence.append(ghost);
+    }
+
+    async function refresh() {
+      const r = await load('unfinished-sentence');
+      if (!r.ok) {
+        sentence.textContent = 'the sentence could not be loaded just now. try again shortly.';
+        return;
+      }
+      const d = r.data;
+      sentence.replaceChildren(...d.entries.map(voice));
+      if (!d.entries.length) {
+        const e = document.createElement('span');
+        e.className = 'empty';
+        e.textContent = copy.empty;
+        sentence.append(e);
+      }
+      if (ghost) sentence.append(ghost);
+
+      const have = d.awaiting ? every : d.sinceMilestone;
+      progress.hidden = false;
+      marks.forEach((m, i) => m.classList.toggle('on', i < have));
+      countLine.textContent = `${have} of ${every} voices`;
+      const left = every - have;
+      until.textContent = d.awaiting ? '' : `${inWords(left)} contribution${left === 1 ? '' : 's'} until the next intervention.`;
+      milestone.hidden = !d.awaiting;
+      milestone.textContent = d.awaiting ? copy.milestone : '';
+      contribute.hidden = !d.open;
+    }
+
+    setupForm('unfinished-sentence', copy, draft, () => void refresh());
+    void refresh();
+  </script>
+</BaseLayout>
+
+<style>
+  .page-head .label { text-decoration: none; display: block; margin-bottom: 1.25rem; }
+  .page-head :global(.intro-copy h1) { font-size: clamp(2.75rem, 1.8rem + 4.5vw, 5.75rem); font-weight: 400; letter-spacing: -0.015em; line-height: 1; }
+  .page-head :global(.intro-copy .pc-body) { margin-top: 1.5rem; max-width: 36rem; }
+
+  .work { display: grid; gap: var(--space-3); }
+  .progress { display: grid; gap: 0.4rem; }
+  .progress[hidden] { display: none; }
+  .marks { display: flex; gap: 6px; }
+  .marks i { width: 2px; height: 1.6rem; background: var(--rule); }
+  .marks i.on { background: var(--ink); }
+  .count { margin: 0.4rem 0 0; font-size: 1.375rem; font-variant-numeric: lining-nums; }
+  .until { margin: 0; }
+  .milestone { white-space: pre-line; font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem); line-height: 1.25; margin: 0; color: var(--oxide); }
+  .milestone[hidden] { display: none; }
+
+  /* The work: one continuous run of words. Each voice continues the last. */
+  .reading { max-width: 46rem; }
+  .sentence {
+    font-size: clamp(1.45rem, 1.15rem + 1.1vw, 2.05rem);
+    line-height: 1.55;
+    margin: 0;
+    hyphens: manual;
+    overflow-wrap: anywhere;
+  }
+  .sentence :global(.voice .seam) {
+    display: none;
+    font-family: var(--sans);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: var(--slate);
+    vertical-align: super;
+    background: none;
+    border: 0;
+    padding: 0 0.25em 0 0.1em;
+    cursor: pointer;
+  }
+  .sentence :global(.voice .seam:disabled) { cursor: default; }
+  .sentence:global(.show-seams) :global(.voice .seam) { display: inline; }
+  .sentence:global(.show-seams) :global(.voice.visitor + .voice.visitor .words) { box-shadow: inset 1px 0 0 var(--rule); padding-left: 0.2em; }
+  /* The artist: recognisable, never louder than the voices before. */
+  .sentence :global(.voice.artist .words) { font-style: italic; color: var(--ink); text-decoration: underline; text-decoration-color: var(--oxide); text-decoration-thickness: 1px; text-underline-offset: 0.3em; }
+  .sentence :global(.voice.removed .words) { font-family: var(--sans); font-size: 0.6em; letter-spacing: 0.1em; color: var(--slate); border: 1px solid var(--rule); padding: 0 0.4em; vertical-align: middle; }
+  .sentence :global(.empty) { white-space: pre-line; color: var(--slate); font-style: italic; }
+  /* Your unsent words, already standing where they would join. */
+  .sentence :global(.ghost) { color: var(--slate); text-decoration: underline dotted var(--slate); text-decoration-thickness: 1px; text-underline-offset: 0.3em; white-space: pre-wrap; }
+  .sentence :global(.ghost[hidden]) { display: none; }
+  .tools { margin: 1rem 0 0; }
+  .report { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+  .report[hidden] { display: none; }
+  .report select { font: inherit; font-family: var(--sans); font-size: 0.875rem; padding: 0.3rem; background: var(--ivory); border: 1px solid var(--slate); }
+  .contribute[hidden] { display: none; }
+</style>

@@ -9,12 +9,17 @@
 # production deploy of claude/gilesmccrary-website-2ingnt) uses the test store
 # "field-preview", so verification pieces never reach the real field.
 # AT LAUNCH (and only then): change the production value below to "field".
+# The literary works (unfinished sentence, space in between us) follow the same
+# rule: "-preview" stores until launch; at launch, set the production suffix to "".
 [context.production.environment]
   FIELD_STORE = "field-preview"
+  WORKS_STORE_SUFFIX = "-preview"
 [context.deploy-preview.environment]
   FIELD_STORE = "field-preview"
+  WORKS_STORE_SUFFIX = "-preview"
 [context.branch-deploy.environment]
   FIELD_STORE = "field-preview"
+  WORKS_STORE_SUFFIX = "-preview"
 
 # Redirect www to the bare domain (HTTPS is provisioned automatically by Netlify).
 [[redirects]]

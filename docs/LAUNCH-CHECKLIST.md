@@ -52,7 +52,7 @@ decision or on access.
 10. ⬜ **Custom domain + HTTPS** (docs/DEPLOYMENT.md §2); re-run step 5's script against
     `https://gilesmccrary.com`.
 11. ⬜ **Launch** (only when approved): in `netlify.toml` set the production
-    `FIELD_STORE` to `field` (a fresh field, without preview pieces); set `prelaunch` and
+    `FIELD_STORE` to `field` and `WORKS_STORE_SUFFIX` to `""` (fresh works, without preview data); set `prelaunch` and
     `showEditorialNotes` off; add `PUBLIC_LAUNCH` = `true` and delete `PRELAUNCH_PASSWORD`
     in Netlify; redeploy; confirm the site opens without a password, robots.txt allows
     indexing, and pages no longer carry `noindex`.
@@ -75,6 +75,8 @@ decision or on access.
 | Privacy page reflects the system, incl. host processing | ✅ draft / ⬜ approval | |
 | Participation terms | ✅ draft / ⬜ legal review | |
 | Contact delivery, editor sign-in, HTTPS on domain | ⬜ | need deployment |
+| unfinished sentence / space in between us: rule of twelve, consent, moderation, concurrency, removal | ✅ local / 🟡 live | `npm run test:works` 20/20; browser walk-through incl. storage failure; verify on Netlify |
+| Literary works: artist decisions (window meaning, 3 or 5, limits, moderation mode, edits, notifications) | ⬜ | settings exist; defaults are the safest options |
 | Prelaunch privacy gate (closed by default) | ✅ local / 🟡 live | `npm run test:gate` 11/11; verify on Netlify (A5) |
 | Prelaunch noindex | ✅ | on until launch |
 | Filing health visible (logs + moderation health line) | ✅ local / 🟡 live | |

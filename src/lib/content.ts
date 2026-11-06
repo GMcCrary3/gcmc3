@@ -26,7 +26,8 @@ export async function getWriting() {
 
 export type PageId =
   | 'home' | 'statement' | 'about' | 'selected-works' | 'archive' | 'words' | 'exhibition'
-  | 'field' | 'books' | 'contact' | 'unfinished-sentence' | 'space-between-us';
+  | 'field' | 'books' | 'contact' | 'unfinished-sentence' | 'space-between-us'
+  | 'participation' | 'sentence' | 'between' | 'closing';
 
 export async function getPage(id: PageId) {
   return getEntry('pages', id);

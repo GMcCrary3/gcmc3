@@ -139,6 +139,8 @@ const isFirst = () => { const f = firstImage; firstImage = false; return f; };
       <p class="part-actions">
         <a class="btn primary" href="/abstract/">{site.abstractRoom.title}</a>
         <a class="text-btn" href="/field/">see the field</a>
+        {site.works.sentence.open && <a class="text-btn" href="/unfinished-sentence/">{site.works.sentence.title}</a>}
+        {site.works.between.open && <a class="text-btn" href="/space-in-between-us/">{site.works.between.title}</a>}
       </p>
     </section>
   )}

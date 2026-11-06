@@ -1,0 +1,235 @@
+---
+/**
+ * The artist's controls for unfinished sentence and space in between us.
+ * Not linked, not indexed, useless without the moderation key (checked on the
+ * server by /api/works/admin).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="participation moderation" noindex>
+  <header class="page-head wrap">
+    <span class="label">participation</span>
+    <h1>moderation</h1>
+  </header>
+  <div class="wrap mod" data-mod>
+    <form class="key" data-key-form>
+      <label for="key">moderation key</label>
+      <input id="key" type="password" autocomplete="current-password" required />
+      <button class="btn primary" type="submit">open</button>
+      <p class="label">kept only for this browser tab.</p>
+    </form>
+
+    <div data-panel hidden>
+      <p class="tabs" role="group" aria-label="work">
+        <button type="button" class="btn" data-project="unfinished-sentence" aria-pressed="true">unfinished sentence</button>
+        <button type="button" class="btn" data-project="space-in-between-us" aria-pressed="false">space in between us</button>
+      </p>
+      <p class="label" data-info aria-live="polite"></p>
+      <div class="banner" data-banner hidden></div>
+
+      <section aria-labelledby="int-h">
+        <h2 id="int-h">intervene</h2>
+        <p class="hint label">your words enter the work now, after the latest published contribution. they never count toward the visitors' total.</p>
+        <textarea id="intervention" rows="4" data-intervention aria-labelledby="int-h"></textarea>
+        <p class="row">
+          <label class="check"><input type="checkbox" data-int-confirm /> publish this intervention</label>
+          <button type="button" class="btn primary" data-int-publish>publish</button>
+        </p>
+      </section>
+
+      <section aria-labelledby="q-h">
+        <h2 id="q-h">waiting to be read <span data-qcount></span></h2>
+        <p class="row">
+          <button type="button" class="text-btn" data-select-all>select all</button>
+          <button type="button" class="btn" data-approve>publish selected</button>
+          <input type="text" placeholder="private note (optional)" data-reason aria-label="private note for rejection" />
+          <button type="button" class="btn" data-reject>don't publish selected</button>
+        </p>
+        <p class="hint label">selected contributions are published in the order they arrived. publishing stops at a milestone.</p>
+        <ol class="items" data-queue></ol>
+      </section>
+
+      <section aria-labelledby="r-h">
+        <h2 id="r-h">reports and removal requests</h2>
+        <ol class="items" data-requests></ol>
+      </section>
+
+      <section aria-labelledby="p-h">
+        <h2 id="p-h">published</h2>
+        <ol class="items" data-published></ol>
+      </section>
+
+      <section aria-labelledby="a-h">
+        <h2 id="a-h">history</h2>
+        <ol class="audit" data-audit></ol>
+      </section>
+
+      <section aria-labelledby="s-h">
+        <h2 id="s-h">settings in use</h2>
+        <p class="hint label">change these in the site editor: settings → site settings → works.</p>
+        <dl class="settings" data-settings></dl>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../lib/field-render';
+    const KEY = 'field-moderation-key';
+    const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+    const form = $<HTMLFormElement>('[data-key-form]');
+    const panel = $('[data-panel]');
+    const info = $('[data-info]');
+    let key = '';
+    let project = 'unfinished-sentence';
+    try { key = sessionStorage.getItem(KEY) ?? ''; } catch { /* ignore */ }
+    const auth = () => ({ 'x-field-admin-key': key });
+    const el = (tag: string, cls = '', text = '') => Object.assign(document.createElement(tag), { className: cls, textContent: text });
+    const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).toLowerCase() : '');
+
+    async function post(body: Record<string, unknown>) {
+      return api<Record<string, unknown>>('/api/works/admin', { method: 'POST', headers: auth(), body: JSON.stringify({ project, ...body }) });
+    }
+
+    async function view() {
+      info.textContent = 'loading…';
+      const r = await api<any>(`/api/works/admin?project=${project}`, { headers: auth() });
+      if (r.status === 401) { info.textContent = 'that key was not accepted.'; panel.hidden = true; form.hidden = false; return; }
+      if (!r.ok) { info.textContent = 'could not load. try again.'; return; }
+      const d = r.data;
+      const c = d.composition;
+      const st = d.settings;
+      info.textContent = `${c.entries.length} published · ${c.visitorCount} visitor contributions · ${d.queue.length} waiting`;
+
+      const banner = $('[data-banner]');
+      const pending = d.milestones.find((m: any) => !m.resolvedAt);
+      banner.hidden = !pending;
+      banner.replaceChildren();
+      if (pending) {
+        banner.append(el('p', 'b1', `milestone ${pending.n}: the ${pending.atVisitor}th visitor contribution was published ${when(pending.reachedAt)}.`));
+        banner.append(el('p', 'b2', c.awaiting && st.enforce ? 'the work is waiting for you. no visitor contribution can be published until you intervene.' : 'an intervention is suggested (not enforced).'));
+        if (pending.window) banner.append(el('p', 'b3', `window (${pending.window.days} days from the ${pending.window.interpretation}, not yet approved as the rule): ${when(pending.window.endsAt)}. nothing happens automatically when it passes.`));
+      }
+
+      const q = $('[data-queue]');
+      $('[data-qcount]').textContent = d.queue.length ? `(${d.queue.length})` : '';
+      q.replaceChildren(...d.queue.map((s: any) => {
+        const li = el('li');
+        const label = el('label', 'pick');
+        const cb = Object.assign(document.createElement('input'), { type: 'checkbox', value: s.id });
+        label.append(cb, el('span', 'text', s.text));
+        const meta = el('p', 'meta label', [
+          `received ${when(s.receivedAt)}`,
+          s.display ? `credit: ${s.display}` : 'anonymous',
+          `written after no. ${s.respondsTo || 'nothing (the beginning)'}`,
+          s.held ? `flagged: ${s.held}` : '',
+          `terms ${s.consent}`,
+        ].filter(Boolean).join(' · '));
+        li.append(label, meta);
+        return li;
+      }));
+      if (!d.queue.length) q.append(el('li', 'none label', 'nothing waiting.'));
+
+      const reqs = $('[data-requests]');
+      reqs.replaceChildren(...d.requests.map((rq: any) => {
+        const li = el('li');
+        li.append(el('p', 'meta label', `${rq.kind === 'removal' ? 'removal requested by the contributor' : `report: ${rq.reason}`} · no. ${rq.seq} · ${when(rq.createdAt)}`));
+        const entry = c.entries.find((e: any) => e.seq === rq.seq);
+        if (entry) li.append(el('p', 'text', entry.status === 'removed' ? '(already removed)' : entry.text));
+        const row = el('p', 'row');
+        const rm = el('button', 'btn', 'remove these words') as HTMLButtonElement;
+        rm.addEventListener('click', async () => { await post({ action: 'remove', seq: rq.seq, reason: rq.kind }); await post({ action: 'request', id: rq.id, status: 'resolved' }); void view(); });
+        const dis = el('button', 'text-btn', 'dismiss') as HTMLButtonElement;
+        dis.addEventListener('click', async () => { await post({ action: 'request', id: rq.id, status: 'dismissed' }); void view(); });
+        row.append(rm, dis);
+        li.append(row);
+        return li;
+      }));
+      if (!d.requests.length) reqs.append(el('li', 'none label', 'none open.'));
+
+      const pub = $('[data-published]');
+      pub.replaceChildren(...[...c.entries].reverse().slice(0, 60).map((e: any) => {
+        const li = el('li', e.kind);
+        li.append(el('p', 'meta label', `no. ${e.seq} · ${e.kind === 'artist' ? 'artist' + (e.milestone ? ` (milestone ${e.milestone})` : '') : (e.display ?? 'anonymous') + ` · visitor ${e.visitorNumber}`} · ${when(e.approvedAt)}`));
+        li.append(el('p', 'text', e.status === 'removed' ? '(removed)' : e.text));
+        if (e.status !== 'removed') {
+          const b = el('button', 'text-btn', 'remove') as HTMLButtonElement;
+          b.addEventListener('click', async () => { b.disabled = true; await post({ action: 'remove', seq: e.seq, reason: 'moderation' }); void view(); });
+          li.append(b);
+        }
+        return li;
+      }));
+
+      const settings = $('[data-settings]');
+      settings.replaceChildren(...Object.entries(st).flatMap(([k, v]) => [el('dt', 'label', k), el('dd', '', String(v))]));
+
+      const a = await api<any>(`/api/works/admin?project=${project}&view=audit`, { headers: auth() });
+      $('[data-audit]').replaceChildren(...((a.data.audit ?? []) as any[]).slice(0, 40).map((x) => el('li', 'label', `${when(x.at)} · ${x.action}${x.seq ? ` · no. ${x.seq}` : ''}${x.n ? ` · milestone ${x.n}` : ''}`)));
+    }
+
+    const selected = () => [...document.querySelectorAll<HTMLInputElement>('[data-queue] input:checked')].map((x) => x.value);
+    $('[data-select-all]').addEventListener('click', () => document.querySelectorAll<HTMLInputElement>('[data-queue] input').forEach((x) => (x.checked = true)));
+    $('[data-approve]').addEventListener('click', async () => {
+      const ids = selected(); if (!ids.length) return;
+      const r = await post({ action: 'approve', ids });
+      info.textContent = Object.values((r.data.results ?? {}) as Record<string, string>).join(' · ') || 'could not publish.';
+      await view();
+    });
+    $('[data-reject]').addEventListener('click', async () => {
+      const ids = selected(); if (!ids.length) return;
+      await post({ action: 'reject', ids, reason: $<HTMLInputElement>('[data-reason]').value });
+      await view();
+    });
+    $('[data-int-publish]').addEventListener('click', async () => {
+      const text = $<HTMLTextAreaElement>('[data-intervention]');
+      const ok = $<HTMLInputElement>('[data-int-confirm]');
+      if (!text.value.trim()) { info.textContent = 'write the intervention first.'; return; }
+      if (!ok.checked) { info.textContent = 'tick "publish this intervention" to confirm.'; return; }
+      const r = await post({ action: 'intervene', text: text.value });
+      if (r.ok) { text.value = ''; ok.checked = false; info.textContent = `published as no. ${r.data.seq}.`; }
+      else info.textContent = 'could not publish. your words are still in the box.';
+      await view();
+    });
+    document.querySelectorAll<HTMLButtonElement>('[data-project]').forEach((b) => b.addEventListener('click', () => {
+      project = b.dataset.project!;
+      document.querySelectorAll('[data-project]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      void view();
+    }));
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      key = $<HTMLInputElement>('#key').value.trim();
+      try { sessionStorage.setItem(KEY, key); } catch { /* ignore */ }
+      form.hidden = true; panel.hidden = false; void view();
+    });
+    if (key) { form.hidden = true; panel.hidden = false; void view(); }
+  </script>
+</BaseLayout>
+
+<style>
+  .key { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+  .key input { font: inherit; padding: 0.5rem; border: 1px solid var(--ink); background: transparent; min-width: 16rem; }
+  .key .label { width: 100%; }
+  .key[hidden], [data-panel][hidden], .banner[hidden] { display: none; }
+  .mod section { margin-top: var(--space-3); border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .mod h2 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .tabs [aria-pressed='true'] { background: var(--ink); color: var(--ivory); }
+  .banner { border: 1px solid var(--oxide); padding: 1rem; margin-top: 1rem; color: var(--ink); }
+  .banner p { margin: 0.2rem 0; }
+  .banner :global(.b1) { color: var(--oxide); font-size: 1.25rem; }
+  .banner :global(.b3) { font-family: var(--sans); font-size: 0.875rem; color: var(--slate); }
+  .row { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+  .row input[type='text'] { font: inherit; font-family: var(--sans); font-size: 0.875rem; padding: 0.45rem; border: 1px solid var(--slate); background: transparent; min-width: 14rem; }
+  textarea { width: 100%; max-width: 40rem; font: inherit; font-size: 1.2rem; padding: 0.6rem; border: 1px solid var(--slate); background: transparent; }
+  .check { display: flex; gap: 0.5rem; align-items: center; font-family: var(--sans); font-size: 0.9rem; }
+  .hint { margin: 0.25rem 0 0.75rem; }
+  .items { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; max-width: 48rem; }
+  .items :global(li) { border-bottom: 1px solid var(--rule); padding-bottom: 0.6rem; }
+  .items :global(li.artist .text) { font-style: italic; }
+  .items :global(.pick) { display: flex; gap: 0.75rem; align-items: baseline; }
+  .items :global(.pick input) { flex: none; }
+  .items :global(.text) { white-space: pre-wrap; margin: 0.2rem 0; font-size: 1.15rem; }
+  .items :global(.meta) { margin: 0.2rem 0; }
+  .audit { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.2rem; }
+  .settings { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.5rem; font-family: var(--sans); font-size: 0.875rem; }
+  .settings :global(dd) { margin: 0; }
+</style>

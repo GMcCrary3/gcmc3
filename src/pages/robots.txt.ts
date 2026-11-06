@@ -5,6 +5,6 @@ import site from '../data/site.json';
 export const GET: APIRoute = ({ site: url }) => {
   const body = site.prelaunch
     ? 'User-agent: *\nDisallow: /\n'
-    : `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /field/moderate/\nDisallow: /api/\n\nSitemap: ${new URL('/sitemap-index.xml', url)}\n`;
+    : `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /field/moderate/\nDisallow: /participation/moderate/\nDisallow: /api/\n\nSitemap: ${new URL('/sitemap-index.xml', url)}\n`;
   return new Response(body, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 };
