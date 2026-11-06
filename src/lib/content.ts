@@ -24,7 +24,11 @@ export async function getWriting() {
   return all.sort((a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title));
 }
 
-export async function getPage(id: 'home' | 'statement' | 'about') {
+export type PageId =
+  | 'home' | 'statement' | 'about' | 'selected-works' | 'archive' | 'words' | 'exhibition'
+  | 'field' | 'books' | 'contact' | 'unfinished-sentence' | 'space-between-us';
+
+export async function getPage(id: PageId) {
   return getEntry('pages', id);
 }
 

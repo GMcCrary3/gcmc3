@@ -1,6 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getWriting, writingKinds, type Writing } from '../../lib/content';
+import { getWriting, getPage, writingKinds, type Writing } from '../../lib/content';
+import PageCopy from '../../components/PageCopy.astro';
+
+const words = await getPage('words');
 
 const all = await getWriting();
 const order: Writing['data']['kind'][] = ['book', 'poetry', 'prose', 'publication'];
@@ -12,12 +15,14 @@ const groups = order
   {/* Poems belonging to a book are listed under that book as well as under poetry. */}
   <header class="page-head wrap">
     <span class="label">writing</span>
-    <h1>writing</h1>
+    <h1>{words?.data.approved && words.data.heading ? words.data.heading : 'writing'}</h1>
+    <PageCopy id="words" headingAs="none" class="section-copy" />
   </header>
 
   {groups.map((g) => (
     <section class="group wrap" aria-labelledby={`g-${g.kind}`}>
       <h2 id={`g-${g.kind}`}>{g.label}</h2>
+      {g.kind === 'book' && <PageCopy id="books" headingAs="none" class="section-copy books-copy" />}
       <ul>
         {g.items.map((w) => (
           <li data-reveal>
@@ -48,6 +53,8 @@ const groups = order
     margin-bottom: 0.5rem;
   }
   ul { list-style: none; margin: 0; padding: 0; }
+  :global(.section-copy) { margin-top: 1.5rem; max-width: 40rem; }
+  .group :global(.books-copy) { margin: 1.5rem 0 1rem; }
   li {
     display: flex;
     justify-content: space-between;

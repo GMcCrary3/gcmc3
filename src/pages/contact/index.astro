@@ -1,12 +1,14 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import site from '../../data/site.json';
+import PageCopy from '../../components/PageCopy.astro';
 const form = site.contactForm;
 ---
 <BaseLayout title="contact" description={`Contact ${site.byline}.`}>
   <header class="page-head wrap">
     <span class="label">contact</span>
     <h1>contact</h1>
+    <PageCopy id="contact" headingAs="none" class="contact-copy" />
   </header>
 
   <div class="wrap layout">
@@ -68,6 +70,7 @@ const form = site.contactForm;
 <style>
   .layout { max-width: 40rem; margin-left: 0; }
   @media (min-width: 60em) { .layout { margin-left: 8%; } }
+  .page-head :global(.contact-copy) { margin-top: 1.5rem; max-width: 40rem; }
   .contact-form { display: grid; gap: 1.5rem; }
   .field { display: grid; gap: 0.4rem; }
   label {

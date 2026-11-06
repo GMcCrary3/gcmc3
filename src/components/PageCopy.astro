@@ -1,0 +1,43 @@
+---
+/**
+ * Renders a piece of the artist's approved site copy (src/content/pages/<id>.md)
+ * exactly as written: heading, optional line beneath it, bold opening line,
+ * then the text. Copy that is not marked approved is not shown.
+ */
+import { render } from 'astro:content';
+import { getPage, type PageId } from '../lib/content';
+
+interface Props {
+  id: PageId;
+  /** How to render the heading: as the page title, a section heading, or not at all. */
+  headingAs?: 'h1' | 'h2' | 'none';
+  /** Optional id for the heading, for aria-labelledby. */
+  headingId?: string;
+  class?: string;
+}
+const { id, headingAs = 'h2', headingId, class: className } = Astro.props;
+const page = await getPage(id);
+const show = Boolean(page?.data.approved);
+const Body = show && page?.body?.trim() ? (await render(page)).Content : null;
+const d = page?.data;
+const Heading = headingAs === 'none' ? null : headingAs;
+---
+{show && d && (
+  <div class:list={['page-copy', className]}>
+    {Heading && d.heading && <Heading id={headingId} class="pc-heading">{d.heading}</Heading>}
+    {d.subheading && <p class="pc-sub">{d.subheading}</p>}
+    {d.lead && <p class="pc-lead"><strong>{d.lead}</strong></p>}
+    {Body && <div class="prose pc-body"><Body /></div>}
+  </div>
+)}
+
+<style>
+  .page-copy { display: grid; gap: 0.75rem; }
+  .pc-heading { margin: 0; }
+  h2.pc-heading { font-size: clamp(1.9rem, 1.4rem + 2vw, 3rem); font-weight: 400; line-height: 1.1; }
+  .pc-sub { margin: 0; font-family: var(--sans); font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--slate); }
+  .pc-lead { margin: 0.5rem 0 0; font-size: clamp(1.4rem, 1.15rem + 1vw, 2rem); line-height: 1.25; max-width: 30ch; }
+  .pc-lead strong { font-weight: 600; }
+  .pc-body { font-size: 1.25rem; line-height: 1.55; margin-top: 0.5rem; }
+  .pc-body :global(p) { margin: 0 0 0.85em; }
+</style>

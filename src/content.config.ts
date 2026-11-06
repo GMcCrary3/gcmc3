@@ -85,6 +85,12 @@ const pages = defineCollection({
   schema: z.object({
     title: z.string(),
     approved: z.boolean().default(false),
+    /** The section's heading, as the artist wrote it. */
+    heading: optionalText,
+    /** A line under the heading (e.g. "artist. writer."). */
+    subheading: optionalText,
+    /** The bold opening line. */
+    lead: optionalText,
     portrait: optionalText,
     portraitAlt: optionalText,
     publications: listOf(linkItem),

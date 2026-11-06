@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import EditorialNote from '../../components/EditorialNote.astro';
+import PageCopy from '../../components/PageCopy.astro';
 import { getArtworks, getMovements } from '../../lib/content';
 import site from '../../data/site.json';
 
@@ -28,7 +29,8 @@ for (const m of movements) {
   <header class="page-head wrap">
     <span class="label">artwork</span>
     <h1>selected works</h1>
-    <p class="intro">To see the works in sequence, with writing, <a href="/exhibition/">enter the exhibition</a>.</p>
+    <PageCopy id="selected-works" headingAs="none" class="section-copy" />
+    <p class="label to-ex"><a href="/exhibition/">enter the exhibition</a></p>
   </header>
 
   <section class="wrap" aria-label="Selected works">
@@ -48,6 +50,7 @@ for (const m of movements) {
     <section class="archive wrap" aria-labelledby="archive-h">
       <div class="archive-head">
         <h2 id="archive-h">{site.gallery.archiveTitle}</h2>
+        <PageCopy id="archive" headingAs="none" class="section-copy" />
         <EditorialNote>
           Placement in selected works or {site.gallery.archiveTitle} is set under
           settings → gallery. It carries no judgement about a work’s status.
@@ -63,7 +66,10 @@ for (const m of movements) {
 </BaseLayout>
 
 <style>
-  .intro { margin-top: 1.5rem; max-width: 36rem; color: var(--ink-soft); }
+  :global(.section-copy) { margin-top: 1.5rem; max-width: 40rem; }
+  .to-ex { margin-top: 1.25rem; }
+  .to-ex a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .archive-head :global(.section-copy) { margin-bottom: var(--space-3); }
   .gallery { display: grid; gap: var(--space-4); }
   @media (min-width: 48em) {
     .gallery {

@@ -47,8 +47,8 @@ decision or on access.
    password, including for cached pages.
 7. ⬜ **Contact form**: submit a test message; confirm the email notification arrives.
 8. ⬜ **Editor**: GitHub OAuth set up; sign in at `/admin/`; make and publish a test edit.
-9. ⬜ **Approvals**: terms (legal review), privacy page, field wording, artist statement,
-   interludes/poems as applicable, analytics decision.
+9. ⬜ **Approvals**: terms (legal review), privacy page, interludes/poems as applicable,
+   analytics decision. (Site copy: ✅ supplied by the artist and in place.)
 10. ⬜ **Custom domain + HTTPS** (docs/DEPLOYMENT.md §2); re-run step 5's script against
     `https://gilesmccrary.com`.
 11. ⬜ **Launch** (only when approved): in `netlify.toml` set the production

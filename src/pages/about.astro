@@ -1,15 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import EditorialNote from '../components/EditorialNote.astro';
 import ArtworkImage from '../components/ArtworkImage.astro';
+import PageCopy from '../components/PageCopy.astro';
 import { getPage } from '../lib/content';
-import { render } from 'astro:content';
 import site from '../data/site.json';
 
-const statement = await getPage('statement');
+// "about the artist" is the artist's own approved text (src/content/pages/about.md).
+// A separate artist statement (statement.md) appears only once it is marked approved.
 const about = await getPage('about');
-const S = statement?.body?.trim() ? (await render(statement)).Content : null;
-const Bio = about?.body?.trim() ? (await render(about)).Content : null;
+const statement = await getPage('statement');
 const a = about?.data;
 const lists = a
   ? ([
@@ -18,82 +17,58 @@ const lists = a
       ['press', a.press],
     ] as const).filter(([, items]) => items.length > 0)
   : [];
-const show = site.showEditorialNotes;
+const hasSide = Boolean(a?.portrait || lists.length || a?.professionalContact);
 ---
-<BaseLayout title="about" description={`About ${site.byline} — ${site.concept}.`} type="profile" image={a?.portrait} imageAlt={a?.portraitAlt}>
+<BaseLayout title="about" description={`About ${site.byline}, ${site.role}`} type="profile" image={a?.portrait} imageAlt={a?.portraitAlt}>
   <header class="page-head wrap">
     <span class="label">about</span>
     <h1>{site.byline}</h1>
+    <p class="role">{site.role}</p>
   </header>
 
-  <div class="wrap cols">
-    <section aria-labelledby="statement-h">
-      <h2 id="statement-h" class="label">artist statement</h2>
-      <div class="prose statement" data-reveal>
-        {S && !statement?.data.approved && (
-          <EditorialNote>
-            Working version, taken verbatim from the approved website brief (“core artistic
-            philosophy”). Final editorial pass before launch, then tick “approved” under
-            site copy → artist statement.
-          </EditorialNote>
-        )}
-        {S ? <S /> : (
-          <EditorialNote>
-            The approved artist statement goes in <code>src/content/pages/statement.md</code>
-            (<em>site copy → artist statement</em> in the editor), exactly as written.
-          </EditorialNote>
-        )}
-      </div>
+  <div class:list={['wrap', 'cols', { single: !hasSide }]}>
+    <section aria-labelledby="about-h" data-reveal>
+      <PageCopy id="about" headingAs="h2" headingId="about-h" class="about-copy" />
+      {statement?.data.approved && (
+        <PageCopy id="statement" headingAs="h2" class="statement-copy" />
+      )}
     </section>
 
-    <div class="side">
-      {a?.portrait && (
-        <figure class="portrait">
-          <ArtworkImage src={a.portrait} alt={a.portraitAlt ?? `Portrait of ${site.byline}`} sizes="(min-width: 60em) 30vw, 90vw" widths={[480, 720, 960]} />
-        </figure>
-      )}
-
-      {(Bio || show) && (
-        <section aria-labelledby="bio-h">
-          <h2 id="bio-h" class="label">biography</h2>
-          <div class="prose" data-reveal>
-            {Bio ? <Bio /> : (
-              <EditorialNote>
-                Biography, portrait, publications, exhibitions, press, and professional contact
-                are all editable under <em>site copy → about</em>. Each section appears only once
-                it has content. Nothing is written on the artist’s behalf.
-              </EditorialNote>
-            )}
-          </div>
-        </section>
-      )}
-
-      {lists.map(([name, items]) => (
-        <section aria-labelledby={`${name}-h`}>
-          <h2 id={`${name}-h`} class="label">{name}</h2>
-          <ul class="facts">
-            {items.map((it) => <li>{it.url ? <a href={it.url} rel="noopener">{it.text}</a> : it.text}</li>)}
-          </ul>
-        </section>
-      ))}
-
-      {a?.professionalContact && (
-        <section aria-labelledby="pro-h">
-          <h2 id="pro-h" class="label">professional enquiries</h2>
-          <p class="pro">{a.professionalContact}</p>
-          <p class="label"><a href="/contact/">contact form</a></p>
-        </section>
-      )}
-    </div>
+    {hasSide && (
+      <div class="side">
+        {a?.portrait && (
+          <figure class="portrait">
+            <ArtworkImage src={a.portrait} alt={a.portraitAlt ?? `Portrait of ${site.byline}`} sizes="(min-width: 60em) 30vw, 90vw" widths={[480, 720, 960]} />
+          </figure>
+        )}
+        {lists.map(([name, items]) => (
+          <section aria-labelledby={`${name}-h`}>
+            <h2 id={`${name}-h`} class="label">{name}</h2>
+            <ul class="facts">
+              {items.map((it) => <li>{it.url ? <a href={it.url} rel="noopener">{it.text}</a> : it.text}</li>)}
+            </ul>
+          </section>
+        ))}
+        {a?.professionalContact && (
+          <section aria-labelledby="pro-h">
+            <h2 id="pro-h" class="label">professional enquiries</h2>
+            <p class="pro">{a.professionalContact}</p>
+            <p class="label"><a href="/contact/">contact form</a></p>
+          </section>
+        )}
+      </div>
+    )}
   </div>
 </BaseLayout>
 
 <style>
+  .role { margin: 1rem 0 0; font-family: var(--sans); font-size: 0.875rem; letter-spacing: 0.1em; color: var(--slate); }
   .cols { display: grid; gap: var(--space-4) var(--gutter); }
-  @media (min-width: 60em) { .cols { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
-  h2 { display: block; margin-bottom: 1.25rem; }
-  .statement { font-size: 1.375rem; line-height: 1.5; }
+  @media (min-width: 60em) { .cols:not(.single) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+  .cols :global(.about-copy) { max-width: 40rem; }
+  .cols :global(.statement-copy) { margin-top: var(--space-4); max-width: 40rem; }
   .side { display: grid; gap: var(--space-3); align-content: start; }
+  .side h2 { display: block; margin-bottom: 1.25rem; }
   .portrait { margin: 0; max-width: 26rem; }
   .facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
   .facts li { border-bottom: 1px solid var(--rule); padding-bottom: 0.5rem; }

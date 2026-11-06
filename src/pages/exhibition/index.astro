@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ExhibitionWork from '../../components/ExhibitionWork.astro';
 import EditorialNote from '../../components/EditorialNote.astro';
+import PageCopy from '../../components/PageCopy.astro';
 import {
   getArtworks, getMovements, getWriting, movementAnchor, movementRange, interludeIsPublic,
   type Movement, type MovementItem,
@@ -33,6 +34,7 @@ const isFirst = () => { const f = firstImage; firstImage = false; return f; };
     <h1>{site.concept}.</h1>
     <p class="ex-secondary">{site.secondaryLine}</p>
     <blockquote class="ex-statement"><p>{site.openingStatement}</p></blockquote>
+    <PageCopy id="exhibition" headingAs="none" class="ex-copy" />
     <p class="ex-howto">
       Move at your own pace. Follow the sequence, or go directly to any movement.
     </p>
@@ -179,6 +181,7 @@ const isFirst = () => { const f = firstImage; firstImage = false; return f; };
     line-height: 1.25;
   }
   .ex-statement p { margin: 0; }
+  .ex-intro :global(.ex-copy) { margin-top: var(--space-3); max-width: 40rem; }
   .ex-howto { margin-top: var(--space-3); color: var(--slate); font-family: var(--sans); font-size: 0.9375rem; max-width: 42ch; }
   .ex-index { list-style: none; padding: 0; margin: 1.5rem 0 0; border-top: 1px solid var(--rule); max-width: 46rem; }
   .ex-index li { border-bottom: 1px solid var(--rule); }

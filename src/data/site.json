@@ -1,6 +1,8 @@
 {
   "siteName": "GilesMcCrary.com",
   "byline": "giles c mccrary iii",
+  "role": "artist. writer.",
+  "signoff": "made, written, and left open.",
   "concept": "abstractly concrete",
   "secondaryLine": "the art of unthinking.",
   "openingStatement": "Some ideas need to be dismantled before they can be understood.",
@@ -46,7 +48,6 @@
     "termsVersion": "2026-10-31",
     "label": "abstractly concrete / participation",
     "title": "the field.",
-    "intro": "Every idea begins somewhere.\nTake one apart. Rearrange what remains.\nLeave it here.\nSee what happens when it meets the others.",
     "invitation": "An artwork without a final form.\nIt begins with an idea. What remains is yours to discover. What you leave becomes part of something larger.",
     "leave": "leave it for others.",
     "seenAsOne": "seen as one.",

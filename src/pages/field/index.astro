@@ -5,13 +5,16 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import site from '../../data/site.json';
+import PageCopy from '../../components/PageCopy.astro';
+import { getPage } from '../../lib/content';
+const fieldCopy = await getPage('field');
 const field = site.field;
 ---
-<BaseLayout title={field.title} description={`${field.title} ${field.intro.replace(/\n/g, ' ')} A participatory artwork by ${site.byline}.`}>
+<BaseLayout title={field.title} description={`${field.title} ${fieldCopy?.data.lead ?? ''} A participatory artwork by ${site.byline}.`}>
   <header class="page-head wrap field-head" data-credit={field.creditLines.join('\n')}>
     <span class="label">{field.label}</span>
     <h1>{field.title}</h1>
-    <p class="intro">{field.intro}</p>
+    <PageCopy id="field" headingAs="none" class="field-copy" />
     <p class="count" aria-live="polite"><span data-count>—</span> <span data-count-label>pieces left so far.</span></p>
     <p class="actions">
       <a class="btn primary" href="/abstract/">{site.abstractRoom.title}</a>
@@ -60,7 +63,7 @@ const field = site.field;
 </BaseLayout>
 
 <style>
-  .field-head .intro { white-space: pre-line; font-size: clamp(1.3rem, 1rem + 1.1vw, 1.9rem); font-style: italic; line-height: 1.4; max-width: 40ch; margin: 1.25rem 0 0; color: var(--ink-soft); }
+  .field-head :global(.field-copy) { margin-top: 1.25rem; max-width: 40rem; }
   .views { display: flex; gap: 1.5rem; margin-top: 1.25rem; }
   .views [aria-pressed='true'] { color: var(--ink); text-decoration-color: var(--oxide); }
   .contributors { margin-top: 1.5rem; max-width: 46rem; font-family: var(--sans); font-size: 0.875rem; color: var(--slate); }

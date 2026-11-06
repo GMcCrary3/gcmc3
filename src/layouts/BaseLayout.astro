@@ -71,8 +71,9 @@ const year = new Date().getFullYear();
       <hr class="rule" />
       <div class="footer-inner">
         <p class="footer-id">
-          <span>{site.byline}</span>
-          <span class="concept">{site.concept}</span>
+          <span class="byline">{site.byline}</span>
+          <span class="role">{site.role}</span>
+          <span class="concept">{site.signoff}</span>
         </p>
         <ul class="label footer-links">
           <li><a href="/exhibition/">exhibition</a></li>
@@ -148,6 +149,7 @@ const year = new Date().getFullYear();
     padding-top: 1.5rem;
   }
   .footer-id { margin: 0; display: flex; gap: 0.25rem 1.25rem; flex-wrap: wrap; }
+  .footer-id .role { font-family: var(--sans); font-size: 0.8125rem; letter-spacing: 0.08em; color: var(--slate); align-self: center; }
   .footer-id .concept { font-style: italic; color: var(--slate); }
   .footer-links {
     list-style: none;

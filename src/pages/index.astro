@@ -1,9 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkImage from '../components/ArtworkImage.astro';
-import EditorialNote from '../components/EditorialNote.astro';
-import { getArtworks, getWriting, getPage, getMovements, artworkAlt, movementAnchor, movementRange } from '../lib/content';
-import { render } from 'astro:content';
+import PageCopy from '../components/PageCopy.astro';
+import { getArtworks, getWriting, getMovements, artworkAlt, movementAnchor, movementRange } from '../lib/content';
 import site from '../data/site.json';
 
 const all = await getArtworks();
@@ -11,8 +10,6 @@ const works = new Map(all.map((w) => [w.id, w]));
 const heroWork = works.get(site.hero.artwork) ?? all[0];
 const { movements } = await getMovements();
 const books = (await getWriting()).filter((w) => w.data.kind === 'book');
-const home = await getPage('home');
-const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
 ---
 <BaseLayout image={heroWork?.data.image} imageAlt={heroWork ? artworkAlt(heroWork) : undefined} cropImage>
   <section class="opening" aria-labelledby="concept">
@@ -45,19 +42,9 @@ const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
     </div>
   </section>
 
-  {(HomeCopy || site.showEditorialNotes) && (
-    <section class="intro wrap" aria-label="Introduction">
-      <div class="prose" data-reveal>
-        {HomeCopy ? <HomeCopy /> : (
-          <EditorialNote>
-            Optional further introduction: <code>src/content/pages/home.md</code> (or
-            <em>site copy → homepage copy</em> in the editor). Paste approved text exactly.
-            The opening statement and button labels are under <em>settings</em>.
-          </EditorialNote>
-        )}
-      </div>
-    </section>
-  )}
+  <section class="intro wrap" aria-label="Introduction">
+    <div data-reveal><PageCopy id="home" headingAs="h2" class="home-copy" /></div>
+  </section>
 
   <section class="movements wrap" aria-labelledby="movements-h">
     <div class="section-head">
@@ -162,8 +149,8 @@ const HomeCopy = home?.body?.trim() ? (await render(home)).Content : null;
   }
 
   .intro { padding-top: var(--space-4); }
-  .intro .prose { margin-left: auto; margin-right: 18%; }
-  @media (max-width: 59.99em) { .intro .prose { margin-right: 0; } }
+  .intro > div { max-width: 40rem; margin-left: auto; margin-right: 12%; }
+  @media (max-width: 59.99em) { .intro > div { margin-right: 0; margin-left: 0; } }
 
   .section-head {
     display: flex;

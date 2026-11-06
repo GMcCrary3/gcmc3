@@ -175,25 +175,26 @@ collections:
   # ------------------------------------------------------------------
   - name: pages
     label: site copy
+    description: "The artist's own words for each page, shown exactly as written. Untick 'approved' to hide a section."
     files:
-      - label: homepage copy (optional further introduction)
+      - label: "homepage introduction"
         name: home
         file: src/content/pages/home.md
         fields: &copyfields
           - { label: title, name: title, widget: hidden }
           - { label: "approved", name: approved, widget: boolean, default: false, required: false }
+          - { label: heading, name: heading, widget: string, required: false }
+          - { label: "line under the heading", name: subheading, widget: string, required: false }
+          - { label: "bold opening line", name: lead, widget: string, required: false }
           - { label: text, name: body, widget: markdown, required: false }
-      - label: artist statement
-        name: statement
-        file: src/content/pages/statement.md
-        fields: *copyfields
-      - label: about
+      - label: "about the artist"
         name: about
         file: src/content/pages/about.md
         fields:
           - { label: title, name: title, widget: hidden }
           - { label: "approved", name: approved, widget: boolean, default: false, required: false }
-          - { label: "biography", name: body, widget: markdown, required: false }
+          - { label: heading, name: heading, widget: string, required: false }
+          - { label: "text", name: body, widget: markdown, required: false }
           - { label: portrait, name: portrait, widget: image, required: false, media_folder: /src/assets/site, public_folder: /src/assets/site }
           - { label: "portrait description (alt text)", name: portraitAlt, widget: string, required: false }
           - label: publications
@@ -206,6 +207,46 @@ collections:
           - { label: exhibitions, name: exhibitions, widget: list, required: false, fields: *linkfields }
           - { label: press, name: press, widget: list, required: false, fields: *linkfields }
           - { label: "professional contact details", name: professionalContact, widget: text, required: false }
+      - label: "selected works"
+        name: selected_works
+        file: src/content/pages/selected-works.md
+        fields: *copyfields
+      - label: "archive & process"
+        name: archive
+        file: src/content/pages/archive.md
+        fields: *copyfields
+      - label: "words (writing page)"
+        name: words
+        file: src/content/pages/words.md
+        fields: *copyfields
+      - label: "books (writing page)"
+        name: books
+        file: src/content/pages/books.md
+        fields: *copyfields
+      - label: "abstractly concrete (exhibition opening)"
+        name: exhibition
+        file: src/content/pages/exhibition.md
+        fields: *copyfields
+      - label: "the field"
+        name: field
+        file: src/content/pages/field.md
+        fields: *copyfields
+      - label: "contact"
+        name: contact
+        file: src/content/pages/contact.md
+        fields: *copyfields
+      - label: "the unfinished sentence (not yet shown)"
+        name: unfinished_sentence
+        file: src/content/pages/unfinished-sentence.md
+        fields: *copyfields
+      - label: "the space between us (not yet shown)"
+        name: space_between_us
+        file: src/content/pages/space-between-us.md
+        fields: *copyfields
+      - label: "artist statement (shown only when approved)"
+        name: statement
+        file: src/content/pages/statement.md
+        fields: *copyfields
 
   # ------------------------------------------------------------------
   - name: settings
@@ -218,6 +259,8 @@ collections:
         fields:
           - { label: "site name", name: siteName, widget: string }
           - { label: byline, name: byline, widget: string }
+          - { label: "role (under the byline)", name: role, widget: string }
+          - { label: "footer sign-off", name: signoff, widget: string }
           - { label: concept, name: concept, widget: string }
           - { label: "secondary line", name: secondaryLine, widget: string }
           - { label: "opening statement", name: openingStatement, widget: text }
@@ -272,7 +315,6 @@ collections:
               - { label: "participation terms version (change when the terms change)", name: termsVersion, widget: string }
               - { label: "section label", name: label, widget: string }
               - { label: title, name: title, widget: string }
-              - { label: "introduction (line breaks kept)", name: intro, widget: text }
               - { label: "invitation (exhibition and homepage; line breaks kept)", name: invitation, widget: text }
               - { label: "participation button", name: leave, widget: string }
               - { label: "collective view", name: seenAsOne, widget: string }

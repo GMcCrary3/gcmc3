@@ -34,8 +34,11 @@ has not been approved (interludes, the working artist statement) is visible only
 1. **Better photographs** of the low-resolution works: 10, 09, 03, 04, 06, 05 and 02 (all under
    800px wide). Replace a file under the same number. The site never enlarges an image
    beyond its native size on detail pages or in the exhibition.
-2. **Artist statement**: a working version from the approved brief is in place; final
-   editorial pass, then tick *approved*.
+2. **Site copy**: the artist's approved copy is in place on every page (home, about,
+   selected works, archive & process, words, books, the exhibition, the field, contact, footer),
+   stored in `src/content/pages/` and editable under *site copy*. Copy for *the unfinished
+   sentence* and *the space between us* is stored, not shown, until those installations exist.
+   The older working artist statement is hidden unless marked approved.
 3. **Interludes**: the proposed prologue interlude and the movement II slot await the
    artist's text and approval.
 4. **Poems**: add approved poems under *writing*, then pair them with paintings in
