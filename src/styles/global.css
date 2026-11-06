@@ -190,6 +190,7 @@ p { margin: 0 0 1em; text-wrap: pretty; }
   padding-block: var(--space-4) var(--space-3);
 }
 .page-head h1 {
+  overflow-wrap: anywhere; /* a single very long word (a title like a web address) breaks instead of overflowing */
   font-size: clamp(2.75rem, 1.8rem + 4.5vw, 5.75rem);
   font-weight: 400;
   letter-spacing: -0.015em;
