@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkImage from '../components/ArtworkImage.astro';
 import PageCopy from '../components/PageCopy.astro';
+import Intro from '../components/Intro.astro';
 import { getArtworks, getWriting, getMovements, artworkAlt, movementAnchor, movementRange } from '../lib/content';
 import site from '../data/site.json';
 
@@ -12,6 +13,8 @@ const { movements } = await getMovements();
 const books = (await getWriting()).filter((w) => w.data.kind === 'book');
 ---
 <BaseLayout image={heroWork?.data.image} imageAlt={heroWork ? artworkAlt(heroWork) : undefined} cropImage>
+  {/* The opening: while under review, only on the private preview. */}
+  {site.intro.enabled && (!site.intro.review || site.prelaunch) && <Intro />}
   <section class="opening" aria-labelledby="concept">
     {heroWork && (
       <div class="opening-art">

@@ -17,6 +17,15 @@
     "artwork": "work-01",
     "focus": "45% 50%"
   },
+  "intro": {
+    "enabled": true,
+    "review": true,
+    "totalSeconds": 45,
+    "holdEndSeconds": 3,
+    "skipHoldSeconds": 5,
+    "dissolveSeconds": 1.5,
+    "oncePerSession": true
+  },
   "gallery": {
     "selected": [
       "work-01",

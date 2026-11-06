@@ -1,0 +1,102 @@
+---
+/**
+ * The opening sequence on the homepage. Rendered only when enabled, and,
+ * while under review, only on the private preview (prelaunch). Shown once per
+ * browser session; add ?intro to the address to see it again.
+ */
+import poem from '../data/intro-poem.json';
+import site from '../data/site.json';
+const cfg = site.intro;
+const stanzas: string[][] = [[]];
+for (const l of poem.lines) {
+  if (!l.trim()) { if (stanzas.at(-1)!.length) stanzas.push([]); }
+  else stanzas.at(-1)!.push(l);
+}
+---
+<div class="intro" data-intro hidden role="dialog" aria-modal="true" aria-labelledby="intro-heading"
+  data-poem={JSON.stringify({ title: poem.title, lines: poem.lines })}
+  data-config={JSON.stringify(cfg)}>
+  <h2 id="intro-heading" class="visually-hidden" tabindex="-1" data-intro-heading>{poem.title}, by {site.byline}</h2>
+  <div class="visually-hidden">
+    {stanzas.map((s) => <p>{s.map((l, i) => <>{l}{i < s.length - 1 && <br />}</>)}</p>)}
+  </div>
+  <div class="intro-stage" data-intro-stage aria-hidden="true"></div>
+  <div class="intro-controls" role="group" aria-label="opening controls">
+    <button type="button" data-intro-pause aria-pressed="false" aria-keyshortcuts="Space">pause</button>
+    <button type="button" data-intro-skip>skip</button>
+    <button type="button" data-intro-enter aria-keyshortcuts="Escape">enter site</button>
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-intro-status></p>
+</div>
+
+<script>
+  import { startIntro } from '../lib/intro';
+  const root = document.querySelector<HTMLElement>('[data-intro]');
+  if (root) {
+    const cfg = JSON.parse(root.dataset.config!);
+    const forced = new URLSearchParams(location.search).has('intro');
+    let seen = false;
+    try { seen = sessionStorage.getItem('intro-seen') === '1'; } catch { /* ignore */ }
+    if (forced || !cfg.oncePerSession || !seen) {
+      startIntro(root, JSON.parse(root.dataset.poem!), cfg, () => {
+        document.querySelector<HTMLElement>('#main')?.focus({ preventScroll: true });
+      });
+    } else {
+      document.documentElement.classList.remove('intro-open');
+    }
+  }
+</script>
+
+<style>
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #000;
+    color: #fff;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: max(1.25rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+    opacity: 1;
+    transition: opacity var(--dissolve, 1500ms) ease;
+  }
+  .intro[hidden] { display: none; }
+  .intro:global(.leaving) { opacity: 0; pointer-events: none; }
+  /* Before the script decides, keep the homepage covered (no flash), unless already seen this session. */
+  :global(html.js:not(.intro-seen)) .intro[hidden] { display: grid; }
+
+  .intro-stage {
+    align-self: center;
+    justify-self: center;
+    width: min(100%, 38rem);
+    font-family: var(--serif);
+    font-weight: 400;
+    /* Size the poem so all of it fits on one screen, phone or desktop. */
+    font-size: min(calc((100dvh - 8rem) / 41), 4.4vw, 1.55rem);
+    line-height: 1.32;
+  }
+  .intro-stage :global(.intro-title) { font-size: 1.5em; margin: 0 0 1.1em; letter-spacing: 0.01em; }
+  .intro-stage :global(.intro-stanza) { margin: 0 0 0.85em; }
+  .intro-stage :global(.l) { display: block; }
+  .intro-stage :global(.c) { opacity: 0; }
+  .intro-stage :global(.c.on) { opacity: 1; }
+
+  .intro-controls { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+  .intro-controls button {
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+    background: none;
+    border: 0;
+    padding: 0.75rem 0.25rem;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .intro-controls button:hover { color: #fff; }
+  .intro-controls button:disabled { opacity: 0.35; cursor: default; }
+  .intro-controls button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; color: #fff; }
+  .intro-controls [data-intro-enter] { color: #fff; }
+  :global(html.intro-open) { overflow: hidden; }
+</style>

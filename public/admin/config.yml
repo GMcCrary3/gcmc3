@@ -296,6 +296,17 @@ collections:
             fields:
               - { label: "artwork", name: artwork, widget: relation, collection: artwork, value_field: "{{slug}}", search_fields: [ref, title], display_fields: ["no. {{ref}} {{title}}"] }
               - { label: "crop focus (x% y%)", name: focus, widget: string, hint: "Which part of the painting stays visible in the homepage crop, e.g. 45% 50%." }
+          - label: "opening sequence (The Artist's Gift)"
+            name: intro
+            widget: object
+            fields:
+              - { label: "on", name: enabled, widget: boolean }
+              - { label: "awaiting review (private preview only)", name: review, widget: boolean }
+              - { label: "total length in seconds, to the start of the dissolve", name: totalSeconds, widget: number, value_type: float }
+              - { label: "hold on the final line (seconds)", name: holdEndSeconds, widget: number, value_type: float }
+              - { label: "hold after skip (seconds)", name: skipHoldSeconds, widget: number, value_type: float }
+              - { label: "dissolve (seconds)", name: dissolveSeconds, widget: number, value_type: float }
+              - { label: "show once per visit", name: oncePerSession, widget: boolean }
           - label: gallery
             name: gallery
             widget: object
