@@ -1,7 +1,7 @@
 ---
 title: "ad infinitum…"
 kind: poetry
-book: "beyond-beyond"
+book: "act-iii"
 year: "2005"
 subtitle: ""
 publisher: ""
