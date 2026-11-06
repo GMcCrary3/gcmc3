@@ -1,7 +1,7 @@
 ---
 title: "a permanent contract"
 kind: poetry
-book: "act-iii"
+book: "beyond-beyond"
 year: "2012"
 subtitle: ""
 publisher: ""
